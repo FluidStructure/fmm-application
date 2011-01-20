@@ -1,0 +1,29 @@
+/*--------------------------------*- C++ -*----------------------------------*\
+| =========                 |                                                 |
+| \\      /  V ortex        | OpenVOAM: The Open Source Vortex Toolbox        |
+|  \\    /   O peration     | Version:  1.7.x                                 |
+|   \\  /    A nd           | Web:      www.OpenVOAM.com                      |
+|    \\/     M anipulation  |                                                 |
+\*---------------------------------------------------------------------------*/
+
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+
+2
+(
+    freeVortices
+    {
+        type            rigidWall;
+        elementType     biotSavartPointVortex;
+        nElements       10;
+        startElement    5;
+    }
+
+    internalWall
+    {
+        type            rigidWall;
+        elementType     firstOrderLineVortex;
+        nElements       5;
+        startElement    0;
+    }
+)
+
