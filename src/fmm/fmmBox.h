@@ -1,44 +1,44 @@
-// Class and operations for FMM Box
+#ifndef FMMBOX_H_
+#define FMMBOX_H_
+
+#include "fmmTree.h"
+#include "primitives.h"
+#include "mesh.h"
+#include <list>
+#include <vector>
 
 #include <iostream>
+#include <stdlib.h>
+using namespace std;
 
-class pointElement2D
+class fmmBox2d
 {
 private:
-double P0[3];
+	void initChildPointers();
 public:
-complex valueAtPoint(double P[3]);
-}
-
-class elementField
-{
-private:
-public:
-int nElements;
-}
-
-class fmmTree
-{
-private:
-int nLevels;
-elementField * elements
-public:
-void buildFmmTree();
+	pnt2d center;
+	double length;
+	int level;
+	
+	// Number and list of elements stored in this box
+	int nPoints;
+	vector<const pnt2d*> points;
+	
+	//Children is an array of pointers to more boxes
+	fmmBox2d* children[4];
+	
+	void split();
+	void addChild(const unsigned i);
+	int getChildIndex(const double* co);
+	
+	// Recursive call to get smallest box in which a point resides
+	fmmBox2d* getPointBox(const double* co);
+	
+	// Constructors
+	fmmBox2d() { initChildPointers(); center.co[0] = 0.0; center.co[1] = 0.0; length=0.0; nPoints=0; }
+	fmmBox2d( double a, double b, double c) { initChildPointers(); center.co[0]=a; center.co[1]=b; length=c; nPoints=0; }
+	// Destructors
+	~fmmBox2d() {};
 };
 
-class fmmBox
-{
-private:
-elementField * elements;
-int treeLevel;
-int levelIndex;
-int boxDimension;
-fmmBox * parentBox;
-fmmBoxList * childBoxes;
-fmmBoxList * neighbourBoxes;
-public:
-int nElements;
-int boxCentre();
-};
-
-
+#endif

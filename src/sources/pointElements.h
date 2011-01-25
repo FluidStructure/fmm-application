@@ -14,7 +14,7 @@ public:
 	// Constructors
 	pointSourceBiot2d () { location = new pnt2d; }			// If no point is given then make a new one
 	pointSourceBiot2d (pnt2d& p) { location = &p; }			// If a point is given then point to it
-	pointSourceBiot2d (double a, double b) { location = new pnt2d; location->x = a; location->y = b; }	
+	pointSourceBiot2d (double a, double b) { location = new pnt2d; location->co[0] = a; location->co[1] = b; }	
 	// Destructors
 	~pointSourceBiot2d() {}
 };

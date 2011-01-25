@@ -11,7 +11,7 @@ class vec2d : public pnt2d
 public:
     vec2d() : pnt2d() {}
     vec2d( double a, double b ) : pnt2d(a,b) {}
-    vec2d(const pnt2d& p) { x=p.x; y=p.y; }
+    vec2d(const pnt2d& p) { co[0]=p.co[0]; co[1]=p.co[1]; }
 
 	double length() { return distToOrigin(); }
 	double distToPoint( const pnt2d& p);
@@ -24,7 +24,7 @@ class vec3d : public pnt3d
 public:
     vec3d() : pnt3d() {}
     vec3d( double a, double b, double c ) : pnt3d(a,b,c) { }
-    vec3d(const pnt3d& p) { x=p.x; y=p.y; z=p.z; }
+    vec3d(const pnt3d& p) { co[0]=p.co[0]; co[1]=p.co[1]; co[2]=p.co[2]; }
 
 	double length() { return distToOrigin(); }
 	double distToPoint( const pnt3d& p);

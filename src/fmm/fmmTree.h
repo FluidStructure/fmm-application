@@ -1,23 +1,28 @@
-#include "primitives.h"
+
+#ifndef FMMTREE_H_
+#define FMMTREE_H_
+
 #include "fmmBox.h"
+#include "primitives.h"
+#include "mesh.h"
+#include <list>
+#include <vector>
+
+#include <iostream>
+#include <stdlib.h>
+using namespace std;
 
 class fmmTree2d
 {
-private:
-	pnt2d treeCentre;
-	double treeDimension;
-	fmmBox2d * zeroBox;
-	list<pnt2d> * targets;
-	srcField2d * sources;
-	list<complex> * targetPot;
-	list<vec2d> * targetVel;
-	list<vec2d> * targetAcc;
 public:
-	void addElements(elmts2d& sources);
-	void buildTree();
-	void upwardPass();
-	void downwardPass();
-	void calcPot();
-	void calcVel();
-	void calcAcc();
-}
+	fmmBox2d topBox;
+	void resizeTopBox();
+	
+	// Constructors
+	fmmTree2d() {};
+	fmmTree2d(const mesh2d& mesh);
+	// Destructors
+	~fmmTree2d() {};
+};
+
+#endif

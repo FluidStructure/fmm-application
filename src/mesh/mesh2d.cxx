@@ -31,7 +31,7 @@ void mesh2d::readElements()
 		readListLine(line, values, 3); 
 	}
 	
-	fin.close()
+	fin.close();
 };
 
 void mesh2d::readPoints()
@@ -43,34 +43,37 @@ void mesh2d::readPoints()
 	ifstream fin("0/points");
 	
 	// Get the integer number of points in total
-	getListLength(fin);
-	
+    nPoints = getListLength(fin);
+	points.reserve(nPoints);
+
 	// Read in all of the points
 	while(getline(fin, line, ')')) 
 	{ 
-		readListLine(line, values, 3); 
+		if ( readListLine(line, values, 3) )
+        {
+        // Add the read values to the points list for the mesh
+        points.push_back(pnt2d( values[0], values[1] ));
+        }
 	}
-	
-	fin.close()
+
+	fin.close();
 };
 
-void mesh2d::getListLength(ifstream& fin)
+int mesh2d::getListLength(ifstream& fin)
 {
 	string line;
 	
 	// Get the integer number of points in total
 	getline(fin, line, '(');
 	removeComments(line);
-	nPoints = atoi(line.c_str());
-	cout << nPoints << endl;
+	return atoi(line.c_str());
 };
 
 template <class T>
-void mesh2d::readListLine(string& line, T* values, int n)
+int mesh2d::readListLine(string& line, T* values, int n)
 {
 	string buf;
 	int i;
-	//double values[n];
 	
 	// Remove comments
 	removeComments(line);
@@ -82,7 +85,7 @@ void mesh2d::readListLine(string& line, T* values, int n)
 	// Remove leading whitespaces (and get next whitespace location)
 	while ( (i = line.find(' ')) == 0 ) { line.replace(i, 1, ""); }
 
-	if (line.length() <= 0) { return; }
+	if (line.length() <= 0) { return 0; }
 
 	for (int c=0; c<n; c++)
 	{
@@ -95,17 +98,9 @@ void mesh2d::readListLine(string& line, T* values, int n)
 		if (buf.length() > 0)
 			values[c] = strtod( buf.c_str(), NULL );
 		else
-			values[c] = 0;
+			return 0;
 	}
-
-	for (i=0;i<n;i++) 
-	{ 
-		if (i == n-1)
-			cout << values[i]; 
-		else
-			cout << values[i] << ", "; 
-	}
-	cout << endl;
+    return 1;
 };
 
 void mesh2d::removeComments(string& str)

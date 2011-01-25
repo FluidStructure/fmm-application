@@ -4,7 +4,7 @@
 
 double vec2d::dot(const vec2d& v)
 {
-	return x*v.x + y*v.y;
+	return co[0]*v.co[0] + co[1]*v.co[1];
 }
 
 double vec2d::distToPoint(const pnt2d& p)
@@ -16,14 +16,14 @@ double vec2d::distToPoint(const pnt2d& p)
 //Methods for vec3d classes
 double vec3d::dot(const vec3d& v)
 {
-	return x*v.x + y*v.y + z*v.z;
+	return co[0]*v.co[0] + co[1]*v.co[1] + co[2]*v.co[2];
 }
 
 vec3d vec3d::cross(const vec3d& v)
 {
     vec3d c;
-    c.z = (x * v.y) - (y * v.x);
-    c.y = (z * v.x) - (x * v.z);
-    c.x = (y * v.z) - (z * v.y);
+    c.co[2] = (co[0] * v.co[1]) - (co[1] * v.co[0]);
+    c.co[1] = (co[2] * v.co[0]) - (co[0] * v.co[2]);
+    c.co[0] = (co[1] * v.co[2]) - (co[2] * v.co[1]);
     return c;
 }

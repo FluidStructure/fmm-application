@@ -1,16 +1,14 @@
 # Define the symbols we might want to change:
-CC	:= g++
-
 OBJECTS	:= *.cxx
 HEADS := *.h
 
-INCDIR := ../../lninclude
-LIBDIR := ../../lib
+all:
+	$(MAKE) $(LIB_DIR)/libfmm.a
 
-libprimitives.a: $(OBJECTS) $(HEADS)
-	$(CXX) -c $(OBJECTS)
-	ar rcs $(LIBDIR)/libfmm.a *.o
-	ln -s $(PWD)/fmm.h $(PWD)/$(INCDIR)/
+$(LIB_DIR)/libfmm.a: $(OBJECTS) $(HEADS)
+	$(CXX) -c $(OBJECTS) -I$(INC_DIR) -L$(LIB_DIR) -lprimitives
+	ar rcs $(LIB_DIR)/libfmm.a *.o
+	ln -sf $(PWD)/*.h $(INC_DIR)/
 
 clean:
-	rm -v *.o *.a
+	rm -v *.o

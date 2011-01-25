@@ -4,34 +4,36 @@
 #define MESH2D_H_
 
 #include "primitives.h"
-#include <list>
+#include <vector>
 
 #include <iostream>
 #include <fstream>
 #include <string>
 
 #include <stdlib.h>
-//using std::cout;
-//using std::endl;
-//using std::list;
 using namespace std;
 
 class mesh2d
 {
 private:
-	int nPoints;
-	list<pnt2d> points;
-	void removeComments(string& line);
-	void getListLength(ifstream& fin);
-	
+    // Containers for all element types
+    //list<pointVortex> pointVortices;
+    //list<lineVortex> lineVortices;
+    
 	// A template function for reading values of arbitrary type
 	template <class T>
-	void readListLine(string& line, T* values, int n);
+	int readListLine(string& line, T* values, int n);
 	
+	void removeComments(string& line);
+	int getListLength(ifstream& fin);
+
 	void readPoints();
 	void readElements();
 public:
     void read();
+
+    int nPoints;
+	vector<pnt2d> points;
 };
 
 #endif
