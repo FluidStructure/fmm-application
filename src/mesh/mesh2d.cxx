@@ -1,36 +1,109 @@
 #include "mesh2d.h"
 
+meshElement::meshElement( int nPoints, int *pIndex, vector<pnt2d>& allPoints )
+{
+	pointsIndices.reserve(nPoints);
+	points.reserve(nPoints);
+
+	for (int i=0;i<nPoints;i++)
+	{
+		pointsIndices.push_back( pIndex[i] );
+		points.push_back( &allPoints[pIndex[i]] );
+	}
+};
+
+void meshElement::minMaxPoints( pnt2d& minPoint, pnt2d& maxPoint, int dim = 2) const
+{
+	int i, j;
+	for (i=0; i<points.size(); i++)
+	{
+		for (j=0; j<dim;j++)
+		{
+			if (points[i]->co[j] < minPoint.co[j]) { minPoint.co[j] = points[i]->co[j]; continue; }
+			if (points[i]->co[j] > maxPoint.co[j]) { maxPoint.co[j] = points[i]->co[j]; }
+		}
+	}
+};
+
+
 // 2D mesh methods
 void mesh2d::read()
 {
-	cout << "Reading in 2D mesh at time=0..." << endl;
+	cout << "Reading in 2D mesh from folder 0/..." << endl;
 	// Read in points and elements
 	readPoints();
 	readElements();
 };
 
+void mesh2d::writeVTK()
+{
+	int i;
+	
+	//string fileName = "VTK/";
+	//fileName = meshName + ".vtk";
+	
+	cout << "Writing 2d mesh to VTK unstructured grid format " << endl;
+	ofstream fout(("VTK/"+meshName+"0000.vtk").c_str());
+	//------------
+	fout << "# vtk DataFile Version 2.0" << endl;
+	fout << "OpenVOAM Unstructured Grid Mesh" << endl;
+	fout << "ASCII" << endl;
+	fout << "DATASET UNSTRUCTURED_GRID" << endl;
+	//POINTS
+	fout << "POINTS " << points.size() << " float" << endl; 
+	for (i=0;i<points.size();i++)
+	{
+		fout << points[i].co[0] << " " << points[i].co[1] << " " << "0.0" << endl;
+	}
+	//CELLS
+	int nData = 0;
+	for (i=0; i<elements.size(); i++)
+	{
+		nData ++;
+		for (int p=0; p<elements[i].pointsIndices.size(); p++) { nData++; }
+	}
+	fout << "CELLS " << elements.size() << " " << nData << endl;
+	//
+	for (i=0; i<elements.size(); i++)
+	{
+		fout << elements[i].pointsIndices.size();
+		for (int p=0; p<elements[i].pointsIndices.size(); p++) { fout << " " << elements[i].pointsIndices[p]; }
+		fout << endl;
+	}
+	//
+	fout << "CELL_TYPES " << elements.size() << " " << endl;
+	for (i=0; i<elements.size(); i++)
+	{
+		if (elements[i].pointsIndices.size() == 1) { fout << 1 << endl; }
+		else if (elements[i].pointsIndices.size() == 2) { fout << 3 << endl; }
+		else { fout << 0 << endl; }
+	}
+	//------------
+	fout.close();
+};
+
 void mesh2d::readElements()
 {
 	string line, buf;
-	int nValues[1];
-	int values[3];
+	int values[4];	// First value is number of points, up to 3 points (triangles for now)
 	int i;
 	
 	ifstream fin("0/elements");
 	
-	// Get the integer number of points in total
-	getListLength(fin);
+	// Get the integer number of elements in total
+	int nElements = getListLength(fin);
+	elements.reserve(nElements);
 	
-	// Read in all of the points
+	// Read in all of the elements
 	while(getline(fin, line, ')')) 
 	{ 
 		// Get the number of points for this element
-		readListLine(line, nValues, 1); 
-		
-		// Get the list of points
-		readListLine(line, values, 3); 
+		if ( readListLine(line, values, 4) )
+		{
+			// Add the read values to the elements list for the mesh
+			elements.push_back( meshElement( values[0], &values[1], this->points ) );	
+		}
 	}
-	
 	fin.close();
 };
 
@@ -43,7 +116,7 @@ void mesh2d::readPoints()
 	ifstream fin("0/points");
 	
 	// Get the integer number of points in total
-    nPoints = getListLength(fin);
+    int nPoints = getListLength(fin);
 	points.reserve(nPoints);
 
 	// Read in all of the points
@@ -51,11 +124,10 @@ void mesh2d::readPoints()
 	{ 
 		if ( readListLine(line, values, 3) )
         {
-        // Add the read values to the points list for the mesh
-        points.push_back(pnt2d( values[0], values[1] ));
+			// Add the read values to the points list for the mesh
+			points.push_back(pnt2d( values[0], values[1] ));
         }
 	}
-
 	fin.close();
 };
 
@@ -98,7 +170,7 @@ int mesh2d::readListLine(string& line, T* values, int n)
 		if (buf.length() > 0)
 			values[c] = strtod( buf.c_str(), NULL );
 		else
-			return 0;
+			values[c] = 0;
 	}
     return 1;
 };

@@ -1,5 +1,5 @@
 # Define the symbols we might want to change:
-export CC := g++
+export CC := g++ -g
 
 export APP_DIR := $(PWD)/applications
 export APP_BIN_DIR := $(APP_DIR)/bin

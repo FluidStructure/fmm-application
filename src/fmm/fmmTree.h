@@ -16,7 +16,9 @@ class fmmTree2d
 {
 public:
 	fmmBox2d topBox;
-	void resizeTopBox();
+	void resizeTopBox(pnt2d& minPoint, pnt2d& maxPoint);
+	
+	void writeVTK();
 	
 	// Constructors
 	fmmTree2d() {};

@@ -13,13 +13,25 @@
 #include <stdlib.h>
 using namespace std;
 
+class meshElement
+{
+public:
+	vector<pnt2d*> points;
+	vector<int> pointsIndices;
+	int elementType;
+	
+	void minMaxPoints ( pnt2d& minPoint, pnt2d& maxPoint, int dim) const;
+	
+	// Constructors
+	meshElement() { elementType=0; }
+	meshElement( int nPoints, int* pIndex, vector<pnt2d>& allPoints);
+	// Destructors
+	~meshElement() {};
+};
+
 class mesh2d
 {
 private:
-    // Containers for all element types
-    //list<pointVortex> pointVortices;
-    //list<lineVortex> lineVortices;
-    
 	// A template function for reading values of arbitrary type
 	template <class T>
 	int readListLine(string& line, T* values, int n);
@@ -30,10 +42,19 @@ private:
 	void readPoints();
 	void readElements();
 public:
+	double time;
+	string meshName;
+    
     void read();
+    void writeVTK();
 
-    int nPoints;
 	vector<pnt2d> points;
+	vector<meshElement> elements;
+	
+	// Constructors
+	mesh2d() { time=0.0; meshName="mesh"; }
+	// Destructors
+	~mesh2d() {};
 };
 
 #endif
