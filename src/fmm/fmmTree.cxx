@@ -17,19 +17,16 @@ fmmTree2d::fmmTree2d(const mesh2d& mesh)
 		topBox.elements.push_back( elementInfo( &mesh.elements[i] ) );
 		topBox.elements.back().element->minMaxPoints(minPoint, maxPoint, 2);
 	}
-	cout << "Minimum and maximum points of bounding box are:" << endl;
-	cout << "(" << minPoint.co[0] << ", " << minPoint.co[1] << ")" << endl;
-	cout << "(" << maxPoint.co[0] << ", " << maxPoint.co[1] << ")" << endl;
 
 	resizeTopBox(minPoint, maxPoint);
-	cout << "Top Box in the FMM tree is of size:" << endl;
-	cout << "Center : (" << topBox.center.co[0] << "," << topBox.center.co[1] << ")" << endl;
-	cout << "Length : " << topBox.length << endl;
-	
+
 	// Reserve space in memory for nPoints and Add pointers to targets in the topbox
 	//int nPoints = mesh.points.size();
 	//topBox.targets.reserve( nPoints );
 	//for (int i=0; i<nPoints; i++) { topBox.targets.push_back( &mesh.points[i] ); }
+	
+	// Do the magic - make the tree
+	topBox.split()
 };
 
 void fmmTree2d::resizeTopBox(pnt2d& minPoint, pnt2d& maxPoint)

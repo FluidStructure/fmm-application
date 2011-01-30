@@ -2,38 +2,31 @@
 
 void elementInfo::assignToChildren( const fmmBox2d* box)
 {
-	int nPoints, index;
-	
-	// Initializers for edge information 
-	// (P1, P2 = intersection points as normalized distance along edge from co[0]->co[1])
+	int nPoints = this->element->points.size();
 	int nChilds = 0;
 	int childIndices[4] = {-1};
-	
-	nPoints = this->element->points.size();
 		
 	if ( nPoints == 1)
 	{
-		index = box->getChildIndex( this->element->points[0]->co );
-		cout << "Found a point element : childIndex: " << index << "" << endl;
+		childIndices[0] = box->getChildIndex( this->element->points[0]->co );
+		nChilds = 1;
+		//cout << "Found point element " << endl;
 	}
 	else if (nPoints == 2)
 	{
-		cout << "Found a line element : ";
-		cout <<  "point1: (" << this->element->points[0]->co[0] << "," << this->element->points[0]->co[1] << ") ";
-		cout <<  "point2: (" << this->element->points[1]->co[0] << "," << this->element->points[1]->co[1] << ") " << endl;
 		nChilds = box->getChildIndex( 
-			this->element->points[0]->co, 
-			this->element->points[1]->co,
-			childIndices);
-		cout << "-->Child Indices";
-		for (int i=0; i<nChilds; i++)
-		{
-			cout << ", " << childIndices[i];
-		}
-		cout << endl;
+			this->element->points[0]->co, this->element->points[1]->co, childIndices);
 	}
 	else
-		cout << "Found an element with " << nPoints << " points" << endl;
+	{
+		cout << "WARNING: Found an element with " << nPoints << " points while splitting tree" << endl;
+	}
+	
+	// Copy this element to the children
+	for (int i=0; i<nChilds; i++)
+	{
+		box->children[childIndices[i]]->elements.push_back( elementInfo(this->element) );
+	}
 };
 
 //##########################
@@ -60,34 +53,33 @@ void fmmBox2d::split()
 		elements[i].assignToChildren(this);
 		elements.pop_back();		// Delete this element from the parent
 	}
-	
-	/* Transfer targets in this box to the children
-	int child;
-	for (int i=targets.size()-1; i>-1; i--)
-	{
-		child = getChildIndex(targets[i]->co);
-		children[child]->targets.push_back( targets[i] );
-		targets.pop_back();
-	}
-	*/
-	
-	/* Remove empty children (point to NULL)
-	for (i=0; i<4;i++) 
-	{ 
-		if (children[i]->elements.size() == 0) 
-			{ delete children[i]; children[i]=NULL; }
-	}
-	*/
 
+	// Look through the children and if any of them meet the criteria
+	// then split them too (recursive call)
+	// OR: if they don't have any elements then point them to NULL
+	for (i=0; i<4; i++)
+	{
+		if ((children[i]->elements.size() > 15) and ( children[i]->level < 50 ))
+		{
+			children[i]->split();
+		}
+		else if (children[i]->elements.size() == 0) 
+		{
+			delete children[i]; 
+			children[i]=NULL; 
+		}
+	}
+	//cout << "At level: " << this->level << endl;
 };
 
 void fmmBox2d::writeToMesh(mesh2d& mesh, bool children=true)
 {
-	int i,j,c;
+	int i,j,c,s;
 	double x, y;
 	int pIndex[4];
 	
 	mesh.points.reserve( mesh.points.size() + 4 );
+	s = mesh.points.size();
 	c=0;
 	// Write this box
 	for (j=-1; j<2; j+=2)
@@ -97,7 +89,7 @@ void fmmBox2d::writeToMesh(mesh2d& mesh, bool children=true)
 			x = this->center.co[0] + ((double)i * this->length)/2.0;
 			y = this->center.co[1] + ((double)j * this->length)/2.0;
 			mesh.points.push_back( pnt2d(x, y) );
-			pIndex[c]=mesh.points.size()+c; c++;
+			pIndex[c]=s+c; c++;
 		}
 	}
 	mesh.elements.push_back( meshElement( 4, &pIndex[0], mesh.points) );
@@ -133,20 +125,19 @@ int fmmBox2d::getChildIndex(const double* co1, const double* co2, int* childIndi
 	
 	// Get the child boxes that each end-point lie within
 	int i1 = this->getChildIndex(co1);
-	int i2 = this->getChildIndex(co1);
+	int i2 = this->getChildIndex(co2);
 	
-	 // Both points are in the same box
+	// Both points are in the same box
 	if (i1 == i2)
 		{ childIndices[0] = i1; return 1; }
 		
 	// Both points are in separate boxed above or below x-axis of box
 	else if ((i1 >= 2) == (i2 >= 2))
-		{ childIndices[0] = i1; childIndices[1] = i1; return 2; }
-		
+		{ childIndices[0] = i1; childIndices[1] = i2; return 2; }
 	// Both points are in separate boxed above or below y-axis of box
 	else if ((i1==0 or i1==2) == (i2==0 or i2==2)) 
-		{ childIndices[0] = i1; childIndices[1] = i1; return 2; }
-		
+		{ childIndices[0] = i1; childIndices[1] = i2; return 2; }
+	
 	// The edge might pass through a few children, get the x and y axis intersections
 	X = co2[0] - co1[0]; Y = co2[1] - co1[1];
 	yi = ((center.co[0] - co1[0])/X)*Y - (center.co[1]-co1[1]);
@@ -165,6 +156,7 @@ int fmmBox2d::getChildIndex(const double* co1, const double* co2, int* childIndi
 	double L = length/2.0;
 	if (fabs(xi) < L) { N++; childIndices[N] = childIndices[0] + 2 - Qy*4; }
 	if (fabs(yi) < L) { N++; childIndices[N] = childIndices[0] + 1 - Qx*2; }
+	N++;
 	
 	return N;
 };

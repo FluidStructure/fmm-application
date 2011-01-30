@@ -56,8 +56,8 @@ public:
 	fmmBox2d* getPointBox(const double* co);
 	
 	// Constructors
-	fmmBox2d() { initPointers(); center.co[0] = 0.0; center.co[1] = 0.0; length=0.0; }
-	fmmBox2d( double a, double b, double c) { initPointers(); center.co[0]=a; center.co[1]=b; length=c; }
+	fmmBox2d() { initPointers(); center.co[0] = 0.0; center.co[1] = 0.0; length=0.0; level=0; }
+	fmmBox2d( double a, double b, double c) { initPointers(); center.co[0]=a; center.co[1]=b; length=c; level=0; }
 	// Destructors
 	~fmmBox2d() {};
 };

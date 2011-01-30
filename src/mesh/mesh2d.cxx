@@ -76,6 +76,7 @@ void mesh2d::writeVTK()
 	{
 		if (elements[i].pointsIndices.size() == 1) { fout << 1 << endl; }
 		else if (elements[i].pointsIndices.size() == 2) { fout << 3 << endl; }
+		else if (elements[i].pointsIndices.size() == 4) { fout << 8 << endl; }
 		else { fout << 0 << endl; }
 	}
 	//------------

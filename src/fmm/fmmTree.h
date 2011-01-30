@@ -1,4 +1,3 @@
-
 #ifndef FMMTREE_H_
 #define FMMTREE_H_
 
