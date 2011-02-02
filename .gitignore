@@ -1,4 +1,6 @@
 applications/bin/*
+!applications/bin/holder.txt
 *.a
-lninclude/*
 *.o
+lninclude/*
+!lninclude/holder.txt

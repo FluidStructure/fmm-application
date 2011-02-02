@@ -26,7 +26,7 @@ fmmTree2d::fmmTree2d(const mesh2d& mesh)
 	//for (int i=0; i<nPoints; i++) { topBox.targets.push_back( &mesh.points[i] ); }
 	
 	// Do the magic - make the tree
-	topBox.split()
+	topBox.split();
 };
 
 void fmmTree2d::resizeTopBox(pnt2d& minPoint, pnt2d& maxPoint)
