@@ -30,17 +30,61 @@ void meshElement::minMaxPoints( pnt2d& minPoint, pnt2d& maxPoint) const
 
 void meshElement::expandMultipole ( double zo[], complex<double> ak[], int& p ) const
 {
+	// Assuming this element is a point element using only first point
 	double q = pointValues[0];
 	complex<double> z( points[0]->co[0]-zo[0], points[0]->co[1]-zo[1] );
 	
 	ak[0] += q;
-	
-	for (int k=1; k<p; k++)
-	{
-		ak[k] += -1.0*q*pow(z,k)/(double)k;
-	}
+	for (int k=1; k<p; k++)	{ ak[k] += -1.0*q*pow(z,k)/(double)k; }
 };
 
+void meshElement::expandMultipole ( double zo[], double lims[], complex<double> ak[], int& p ) const
+{
+	// Assuming this element is a line-element with two points
+	int i,k;
+	
+	// Expand the line-integral pow(z,k) term
+	// (C = z1-zo) & (D = z2-z1)
+	complex<double> C( points[0]->co[0]-zo[0], points[0]->co[1]-zo[1] );
+	complex<double> D( points[1]->co[0]-points[0]->co[0], 
+					    points[1]->co[1]-points[0]->co[1] );
+	
+	double q1 = pointValues[0];
+	double q2 = pointValues[1];
+	
+	// Integral for the strength
+	ak[0] += q1*(lims[1] - lims[0])
+		  + (q2-q1)*0.5*(pow(lims[1],2) - pow(lims[0],2));
+	
+	// For efficiency we'll actually construct the binomial expansion 
+	// from a Pascals triangle-type operation as we go
+	complex<double> T;
+	double K;
+	double B[p]; double Btmp[p];
+	B[0] = 1.0; B[1] = 1.0;   // Prime the triangle with the first elements
+	for (k=1; k<p; k++)
+	{
+		// perform integral for each term of a polynomial expansion of the (z-zo)^k term
+		K = (double)k;
+		for (i=0;i<=k;i++) 
+		{
+			// Binomial coefficient for polynomial term
+			T = B[i]*pow(C,i)*pow(D,k-i);
+			// Zero-order part
+			ak[k] += (-q1/((K+1)*K)) * T*( pow(lims[1],k-i+1) - pow(lims[0],k-i+1) );
+			// First-order (gradient of strength part)
+			ak[k] += (-1.0*(q2-q1)/((K+2)*K)) * T*( pow(lims[1],k-i+2) - pow(lims[0],k-i+2) );
+		}
+		
+		// Calculate next row of Pascals triangle into temporary holder
+		Btmp[0] = 1.0;
+		for (i=1;i<=k;i++) { Btmp[i] = B[i-1] + B[i]; }
+		Btmp[k+1] = 1.0;
+		
+		// Replace with values from temporary holder
+		for (i=0;i<=k+1;i++) { B[i] = Btmp[i]; }  
+	}
+};
 
 //-------------------------------
 // 2D mesh methods

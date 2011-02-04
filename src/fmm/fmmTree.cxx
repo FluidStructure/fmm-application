@@ -53,7 +53,7 @@ void fmmTree2d::writeVTK()
 void fmmTree2d::multipoleExpansion()
 {
 	int nLeafs = leafBoxes.size();
-	p=15;
+	p=6;
 	
 	cout << "#########" << endl;
 	cout << "Number of leaf-boxes = " << nLeafs << endl;

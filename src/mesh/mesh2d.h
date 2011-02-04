@@ -28,6 +28,7 @@ public:
 	
 	// FMM operations
 	void expandMultipole ( double zo[], complex<double> ak[], int& p ) const;
+	void expandMultipole ( double zo[], double lims[], complex<double> ak[], int& p ) const;
 	
 	// Constructors
 	meshElement() { elementType=0; }

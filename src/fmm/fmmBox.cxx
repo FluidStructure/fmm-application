@@ -169,7 +169,7 @@ void fmmBox2d::expandMultipole( int& p )
 {
 	int nPoints = 0;
 	int nElements = elements.size();
-	double pints[2] = {0.0, 1.0};
+	double lims[2] = {0.0, 1.0};
 	
 	ak = new complex<double>[p];
 	
@@ -183,9 +183,8 @@ void fmmBox2d::expandMultipole( int& p )
 		else if (nPoints == 2)
 		{
 			// Get limits of line-integral (line-box intersection points)
-			lineIntersectionPoints( elements[i], pints );
-			cout << "---- " << pints[0] << endl;
-			
+			lineIntersectionPoints( elements[i], lims );
+			elements[i]->expandMultipole( this->center.co, lims, ak, p );
 		}
 		else
 		{
@@ -194,34 +193,69 @@ void fmmBox2d::expandMultipole( int& p )
 	}
 };
 
-void fmmBox2d::lineIntersectionPoints( const meshElement* element, double pints[] )
+int fmmBox2d::lineIntersectionPoints( const meshElement* element, double pints[] )
 {	
-	int nInts = 2;
-	pints[0] = 0.0;
-	pints[1] = 1.0;
-	cout << "Working out Box-line intersection points" << endl;
-	// If co[0] is inside of box then pint[0] = 0.0
-	if (pointInBox( element->points[0]->co )) { nInts--; }
-	if (pointInBox( element->points[1]->co )) { nInts--; }
+	double p, D, P, boxEdge;
+	pints[0] = 0.0;	pints[1] = 1.0;
 	
-	if (nInts == 0) { return; }
-	else
+	double tolu = length*1e-12;
+	double toll = -1.0*tolu;
+	
+	bool p0inside = true;
+	
+	int i=0;
+	int s=0;
+	bool j=0;
+	
+	// Calculate the box limits
+	double halfLength = length/2.0;
+	double boxLims[2][2];
+	boxLims[0][0] = center.co[0] - halfLength;
+	boxLims[0][1] = center.co[0] + halfLength;
+	boxLims[1][0] = center.co[1] - halfLength;
+	boxLims[1][1] = center.co[1] + halfLength;
+	
+	int nInts = 0;
+	for (i=0;i<2;i++)
 	{
-		double eLength = element->points[0]->distToPoint( element->points[1] );
-		double p = 0.0;
-		double D = 0.0;
-		double boxEdge = 0.0;
-		// Move get box intersection on vertical (i=0) and horizontal (i=1) sides of box
-		for (int i=0;i<2;i++)
+		j = (i==0);	// "j" is the other coordinate axis index
+		
+		D = (element->points[1]->co[i] - element->points[0]->co[i]);
+		// Avoid a possible divide-by-zero error here
+		if ((D < tolu) && (D > toll)) { continue; }
+		
+		for (int s=0;s<2;s++)
 		{
-			for (int x=-1;x<2;x+=2)
-			{
-				boxEdge = center.co[i] + x*length/2.0
-				D = (element->points[1]->co[i] - element->points[0]->co[i]);
-				p = (boxEdge - element->points[0]->co[i])/D;
-			}
+			boxEdge = boxLims[i][s];
+			
+			p = (boxEdge - element->points[0]->co[i])/D;
+			// Check if intersection point p is on the cutting line somewhere
+			if ((p <= 0.0) or (p >= 1.0)) { continue; }
+			
+			// Check if intersection point p is on the box perimeter
+			P = (element->points[1]->co[j] - element->points[0]->co[j])*p + element->points[0]->co[j];
+			if ( (P < boxLims[j][0]) or (P > boxLims[j][1]) ) { continue; }
+
+			if (nInts > 1) { cerr << "ERROR: More than two intersections found."
+								  << " This will probably seg-fault" << endl; }
+			pints[nInts] = p;
+			nInts ++;
+			
+			// Check if point[0] is on the in-side of the boxEdge
+			if ((element->points[0]->co[i] - boxEdge)*(2*s-1) > 0.0)
+				{ p0inside = false; }
 		}
 	}
+	if (nInts == 0) { return nInts; }
+	
+	if (nInts == 1)
+	{
+		if (p0inside) { pints[1] = pints[0]; pints[0] = 0.0; return nInts; }
+		return nInts;
+	}
+	
+	if (pints[1] < pints[0]) { p = pints[0]; pints[0] = pints[1]; pints[1] = p; }
+	return 2;
 };
 
 bool fmmBox2d::pointInBox( double co[] )

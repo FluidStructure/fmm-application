@@ -41,7 +41,7 @@ public:
 	void writeToMesh(mesh2d& mesh, bool children);
 
 	// Recursive call to get smallest box in which a point resides
-	void lineIntersectionPoints( const meshElement* element, double pints[] );
+	int lineIntersectionPoints( const meshElement* element, double pints[] );
 	bool pointInBox( double co[] );
 	fmmBox2d* getPointBox(const double* co);
 	
