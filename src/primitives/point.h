@@ -12,7 +12,7 @@ public:
 	double co[2];
 	//double x, y;
 	double distToOrigin(); 
-	double distToPoint(const pnt2d& p);
+	double distToPoint( pnt2d* p );
 	// Constructors 
 	pnt2d() { co[0]=0; co[1]=0; }
 	pnt2d( double a, double b) { co[0]=a; co[1]=b; }
@@ -26,7 +26,7 @@ public:
 	double co[3];
 	//double z;
 	double distToOrigin();
-	double distToPoint(const pnt3d& p);
+	double distToPoint( pnt3d* p );
 	// Constructors 
 	pnt3d() { co[2]=0; }
 	pnt3d( double a, double b, double c) : pnt2d(a,b) { co[2]=c; }

@@ -6,8 +6,9 @@ all:
 	$(MAKE) $(LIB_DIR)/libfmm.a
 
 $(LIB_DIR)/libfmm.a: $(OBJECTS) $(HEADS)
-	$(CXX) -c $(OBJECTS) -I$(INC_DIR) -L$(LIB_DIR) -lprimitives
+	$(CXX) -c $(OBJECTS) -I$(INC_DIR)
 	ar rcs $(LIB_DIR)/libfmm.a *.o
+	ar rcs $(LIB_DIR)/libvoam.a *.o
 	ln -sf $(PWD)/*.h $(INC_DIR)/
 
 clean:

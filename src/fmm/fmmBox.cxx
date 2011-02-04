@@ -1,34 +1,5 @@
 #include "fmm.h"
 
-void elementInfo::assignToChildren( const fmmBox2d* box)
-{
-	int nPoints = this->element->points.size();
-	int nChilds = 0;
-	int childIndices[4] = {-1};
-		
-	if ( nPoints == 1)
-	{
-		childIndices[0] = box->getChildIndex( this->element->points[0]->co );
-		nChilds = 1;
-		//cout << "Found point element " << endl;
-	}
-	else if (nPoints == 2)
-	{
-		nChilds = box->getChildIndex( 
-			this->element->points[0]->co, this->element->points[1]->co, childIndices);
-	}
-	else
-	{
-		cout << "WARNING: Found an element with " << nPoints << " points while splitting tree" << endl;
-	}
-	
-	// Copy this element to the children
-	for (int i=0; i<nChilds; i++)
-	{
-		box->children[childIndices[i]]->elements.push_back( elementInfo(this->element) );
-	}
-};
-
 //##########################
 
 void fmmBox2d::initPointers()
@@ -39,7 +10,7 @@ void fmmBox2d::initPointers()
 	parent = NULL;
 };
 
-void fmmBox2d::split()
+void fmmBox2d::split( vector<fmmBox2d*>& leafs )
 {
 	int i, N;
 	int childIndices[4];
@@ -50,7 +21,7 @@ void fmmBox2d::split()
 	// Get the children that each element touches
 	for (i=elements.size()-1; i>-1; i--)
 	{
-		elements[i].assignToChildren(this);
+		assignToChildren(elements[i]);
 		elements.pop_back();		// Delete this element from the parent
 	}
 
@@ -61,15 +32,18 @@ void fmmBox2d::split()
 	{
 		if ((children[i]->elements.size() > 15) and ( children[i]->level < 50 ))
 		{
-			children[i]->split();
+			children[i]->split( leafs );
 		}
 		else if (children[i]->elements.size() == 0) 
 		{
 			delete children[i]; 
 			children[i]=NULL; 
 		}
+		else
+		{
+			leafs.push_back( children[i] );		// This child box is a leaf
+		}
 	}
-	//cout << "At level: " << this->level << endl;
 };
 
 void fmmBox2d::writeToMesh(mesh2d& mesh, bool children=true)
@@ -104,6 +78,34 @@ void fmmBox2d::writeToMesh(mesh2d& mesh, bool children=true)
 				this->children[i]->writeToMesh(mesh, true);
 			}
 		}
+	}
+};
+
+void fmmBox2d::assignToChildren(const meshElement* element)
+{
+	int nPoints = element->points.size();
+	int nChilds = 0;
+	int childIndices[4] = {-1};
+		
+	if ( nPoints == 1)
+	{
+		childIndices[0] = this->getChildIndex( element->points[0]->co );
+		nChilds = 1;
+	}
+	else if (nPoints == 2)
+	{
+		nChilds = this->getChildIndex( 
+			element->points[0]->co, element->points[1]->co, childIndices);
+	}
+	else
+	{
+		cout << "WARNING: Found an element with " << nPoints << " points while splitting box" << endl;
+	}
+	
+	// Copy this element to the children
+	for (int i=0; i<nChilds; i++)
+	{
+		this->children[childIndices[i]]->elements.push_back( element );
 	}
 };
 
@@ -159,6 +161,76 @@ int fmmBox2d::getChildIndex(const double* co1, const double* co2, int* childIndi
 	N++;
 	
 	return N;
+};
+
+//----------------------
+
+void fmmBox2d::expandMultipole( int& p )
+{
+	int nPoints = 0;
+	int nElements = elements.size();
+	double pints[2] = {0.0, 1.0};
+	
+	ak = new complex<double>[p];
+	
+	for (int i=0; i<nElements; i++)
+	{
+		nPoints = elements[i]->points.size();
+		if (nPoints == 1)
+		{
+			elements[i]->expandMultipole( this->center.co, ak, p );
+		}
+		else if (nPoints == 2)
+		{
+			// Get limits of line-integral (line-box intersection points)
+			lineIntersectionPoints( elements[i], pints );
+			cout << "---- " << pints[0] << endl;
+			
+		}
+		else
+		{
+			cout << "Higher order elements not supported in 2d" << endl;
+		}
+	}
+};
+
+void fmmBox2d::lineIntersectionPoints( const meshElement* element, double pints[] )
+{	
+	int nInts = 2;
+	pints[0] = 0.0;
+	pints[1] = 1.0;
+	cout << "Working out Box-line intersection points" << endl;
+	// If co[0] is inside of box then pint[0] = 0.0
+	if (pointInBox( element->points[0]->co )) { nInts--; }
+	if (pointInBox( element->points[1]->co )) { nInts--; }
+	
+	if (nInts == 0) { return; }
+	else
+	{
+		double eLength = element->points[0]->distToPoint( element->points[1] );
+		double p = 0.0;
+		double D = 0.0;
+		double boxEdge = 0.0;
+		// Move get box intersection on vertical (i=0) and horizontal (i=1) sides of box
+		for (int i=0;i<2;i++)
+		{
+			for (int x=-1;x<2;x+=2)
+			{
+				boxEdge = center.co[i] + x*length/2.0
+				D = (element->points[1]->co[i] - element->points[0]->co[i]);
+				p = (boxEdge - element->points[0]->co[i])/D;
+			}
+		}
+	}
+};
+
+bool fmmBox2d::pointInBox( double co[] )
+{
+	for (int i=0;i<2;i++)
+	{
+		if ( abs(co[i]-center.co[i]) <= (length/2.0) ) { return false; }
+	}
+	return true;
 };
 
 //------------------

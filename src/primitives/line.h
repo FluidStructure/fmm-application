@@ -12,7 +12,7 @@ public:
 	pnt2d P0, P1;
     line2d( pnt2d a, pnt2d b) { P0=a; P1=b; }
 
-    double length() { return P1.distToPoint(P0); };
+    double length() { return P1.distToPoint(&P0); };
 };
 
 
@@ -22,5 +22,5 @@ public:
 	pnt3d P0, P1;
 	line3d( pnt3d a, pnt3d b) { P0=a; P1=b; }
 
-    double length() { return P1.distToPoint(P0); };
+    double length() { return P1.distToPoint(&P0); };
 };

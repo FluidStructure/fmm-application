@@ -1,4 +1,4 @@
-#include "mesh2d.h"
+#include "mesh.h"
 
 meshElement::meshElement( int nPoints, int *pIndex, vector<pnt2d>& allPoints )
 {
@@ -9,24 +9,42 @@ meshElement::meshElement( int nPoints, int *pIndex, vector<pnt2d>& allPoints )
 	{
 		pointsIndices.push_back( pIndex[i] );
 		points.push_back( &allPoints[pIndex[i]] );
+		
+		pointValues.push_back(1.0);
 	}
 };
 
-void meshElement::minMaxPoints( pnt2d& minPoint, pnt2d& maxPoint, int dim = 2) const
+void meshElement::minMaxPoints( pnt2d& minPoint, pnt2d& maxPoint) const
 {
 	int i, j;
 	for (i=0; i<points.size(); i++)
 	{
-		for (j=0; j<dim;j++)
+		for (j=0; j<2;j++)
 		{
 			if (points[i]->co[j] < minPoint.co[j]) { minPoint.co[j] = points[i]->co[j]; continue; }
 			if (points[i]->co[j] > maxPoint.co[j]) { maxPoint.co[j] = points[i]->co[j]; }
 		}
 	}
+	//cout << minPoint.distToOrigin() << "  fdsa" << endl;
+};
+
+void meshElement::expandMultipole ( double zo[], complex<double> ak[], int& p ) const
+{
+	double q = pointValues[0];
+	complex<double> z( points[0]->co[0]-zo[0], points[0]->co[1]-zo[1] );
+	
+	ak[0] += q;
+	
+	for (int k=1; k<p; k++)
+	{
+		ak[k] += -1.0*q*pow(z,k)/(double)k;
+	}
 };
 
 
+//-------------------------------
 // 2D mesh methods
+
 void mesh2d::read()
 {
 	cout << "Reading in 2D mesh from folder 0/..." << endl;

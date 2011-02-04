@@ -13,3 +13,8 @@ export LIB_DIR := $(PWD)/lib
 all:
 	cd $(SRC_DIR) && ($(MAKE) all)
 	cd $(APP_DIR) && ($(MAKE) all)
+
+clean:
+	cd $(SRC_DIR) && ($(MAKE) clean)
+	cd $(APP_DIR) && ($(MAKE) clean)
+	rm -v lib/*.a

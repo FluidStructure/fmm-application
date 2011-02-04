@@ -15,7 +15,15 @@ class fmmTree2d
 {
 public:
 	fmmBox2d topBox;
+	vector<fmmBox2d*> leafBoxes;
+	int p;	// Number of polynomial coefficiency in the multipole expansion
+	
 	void resizeTopBox(pnt2d& minPoint, pnt2d& maxPoint);
+	
+	void multipoleExpansion();
+	void upwardPass();
+	void downwardPass();
+	void nearInteractions();
 	
 	void writeVTK();
 	

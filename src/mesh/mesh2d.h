@@ -6,6 +6,8 @@
 #include "primitives.h"
 #include <vector>
 
+#include <complex>
+
 #include <iostream>
 #include <fstream>
 #include <string>
@@ -20,7 +22,12 @@ public:
 	vector<int> pointsIndices;
 	int elementType;
 	
-	void minMaxPoints ( pnt2d& minPoint, pnt2d& maxPoint, int dim) const;
+	vector<double> pointValues;
+	
+	void minMaxPoints ( pnt2d& minPoint, pnt2d& maxPoint) const;
+	
+	// FMM operations
+	void expandMultipole ( double zo[], complex<double> ak[], int& p ) const;
 	
 	// Constructors
 	meshElement() { elementType=0; }
@@ -28,6 +35,8 @@ public:
 	// Destructors
 	~meshElement() {};
 };
+
+//--------------
 
 class mesh2d
 {

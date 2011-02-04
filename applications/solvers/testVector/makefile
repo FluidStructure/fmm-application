@@ -4,7 +4,7 @@ all:
 	make $(APP_BIN_DIR)/testVector
 
 $(APP_BIN_DIR)/testVector: testVector.cxx $(LIB_DIR)/* $(LIB_DIR)/* 
-	$(CXX) testVector.cxx -I$(INC_DIR) -L$(LIB_DIR) -lprimitives -o $(APP_BIN_DIR)/testVector
+	$(CXX) testVector.cxx -I$(INC_DIR) -L$(LIB_DIR) -lvoam -o $(APP_BIN_DIR)/testVector
 
 clean:
-	rm -v $(OBJS)
+	rm -v $(APP_BIN_DIR)/testVector

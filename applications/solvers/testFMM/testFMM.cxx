@@ -39,6 +39,13 @@ int main()
 	gettimeofday(&stop, NULL);
 	cout << "Constructed the tree in: " << timeDiff(start, stop) << endl;
 
+	// Perform the multipole expansions on leaf boxes
+	cout << "Performing multipole expansions:" << endl;
+	gettimeofday(&start, NULL);
+	tree.multipoleExpansion();	// write the tree to VTK (takes ages for large number of levels)
+	gettimeofday(&stop, NULL);
+	cout << "Completed multipole expansions in:" << timeDiff(start, stop) << endl;
+
 	// Write the quad-tree to VTK format
 	cout << "Writing FMM Tree object:" << endl;
 	gettimeofday(&start, NULL);
