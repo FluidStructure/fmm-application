@@ -171,8 +171,6 @@ void fmmBox2d::expandMultipole( int& p )
 	int nElements = elements.size();
 	double lims[2] = {0.0, 1.0};
 	
-	ak = new complex<double>[p];
-	
 	for (int i=0; i<nElements; i++)
 	{
 		nPoints = elements[i]->points.size();
@@ -190,6 +188,24 @@ void fmmBox2d::expandMultipole( int& p )
 		{
 			cout << "Higher order elements not supported in 2d" << endl;
 		}
+	}
+};
+
+void fmmBox2d::passUpwards()
+{
+	complex<double> zo( center.co[0], center.co[1] );
+	complex<double> z( parent->center.co[0], parent->center.co[1] );
+	complex<double> bl;
+	double BC[p];
+	
+	parent->ak[0] += ak[0]*log(z);
+	
+	// Do Equation 4.15 and build binomial coefficients dynamically with pascals triangle
+	BC[0] = 1.0;
+	for (int k; k<p; k++)
+	{
+		BC[k] = BC[k-1];
+		bl = -1.0*ak[k]*pow(z,p-k)*BC[k];
 	}
 };
 
@@ -280,8 +296,10 @@ void fmmBox2d::addChild(const unsigned i)
 	children[i]->center.co[0] = center.co[0] + ((double)x-0.5)*length/2.0;
 	children[i]->center.co[1] = center.co[1] + ((double)y-0.5)*length/2.0;
 	children[i]->length = length/2.0;
-	children[i]->level = this->level + 1;
+	children[i]->level = level + 1;
 	children[i]->parent = this;
+	children[i]->p = p;
+	children[i]->ak = new complex<double>[p];
 };
 
 fmmBox2d* fmmBox2d::getPointBox(const double* co)

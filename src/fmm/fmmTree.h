@@ -29,7 +29,7 @@ public:
 	
 	// Constructors
 	fmmTree2d() {};
-	fmmTree2d(const mesh2d& mesh);
+	fmmTree2d(const mesh2d& mesh, int nCoeffs);
 	// Destructors
 	~fmmTree2d() {};
 };

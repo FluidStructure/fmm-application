@@ -35,7 +35,7 @@ int main()
 	
 	// Construct the FMM-tree for potential elements
 	gettimeofday(&start, NULL);
-	fmmTree2d tree(mesh);	// Make a tree from the mesh
+	fmmTree2d tree(mesh, 6);	// Make an fmmTree from the mesh (p=6)
 	gettimeofday(&stop, NULL);
 	cout << "Constructed the tree in: " << timeDiff(start, stop) << endl;
 

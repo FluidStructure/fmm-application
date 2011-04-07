@@ -24,6 +24,7 @@ public:
 	int level;
 	
 	// FMM Storage
+	int p;
 	complex<double> * ak;
 	
 	// Vector of elements and info stored in this box
@@ -47,6 +48,7 @@ public:
 	
 	// FMM Methods
 	void expandMultipole( int& p );
+	void passUpwards();
 	
 	// Constructors
 	fmmBox2d() { initPointers(); center.co[0] = 0.0; center.co[1] = 0.0; length=0.0; level=0; }

@@ -1,8 +1,13 @@
 #include "fmm.h"
 
-fmmTree2d::fmmTree2d(const mesh2d& mesh)
+fmmTree2d::fmmTree2d(const mesh2d& mesh, int nCoeffs)
 {
 	cout << "Constructing FMM from Mesh" << endl;
+	
+	// Set the number of coefficients
+	p = nCoeffs;
+	topBox.p = nCoeffs;
+	topBox.ak = new complex<double>[p];
 	
 	// Some points to keep a track of the bounding box
 	pnt2d minPoint( mesh.elements[0].points[0]->co[0], mesh.elements[0].points[0]->co[1] );
@@ -53,7 +58,6 @@ void fmmTree2d::writeVTK()
 void fmmTree2d::multipoleExpansion()
 {
 	int nLeafs = leafBoxes.size();
-	p=6;
 	
 	cout << "#########" << endl;
 	cout << "Number of leaf-boxes = " << nLeafs << endl;
