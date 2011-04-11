@@ -58,12 +58,14 @@ class fmmBox():
             self.sources.append( source (self.x, self.y) )
 
     def directPotential(self,x,y):
+        """Calculate VELOCITY POTENTIAL directly.  Nothing fancy here"""
         p = 0.0
         for s in self.sources:
             p += s.potential(x,y)
         return p
 
     def directVelocity(self,x,y):
+        """Calculate VELOCITY directly.  Nothing fancy here either"""
         u = 0.0;v=0.0
         for s in self.sources:
             (uu,vv) = s.velocity(x,y)
@@ -72,10 +74,14 @@ class fmmBox():
         return (u,v)
 
     def expandMultipoles(self):
+        """Lemma 4.2 (Multipole expansion)"""
         for s in self.sources:
             s.expandMultipole(self, self.p)
 
     def multipolePotential(self,x,y):
+        """Get the VELOCITY POTENTIAL at evaluation point (x,y) 
+        directly from the multipole expansion about the centre of 
+        this fmm-box (using coefficients ak)"""
         z = (x-self.x) + (y-self.y)*1j
         pot = self.ak[0]*log(z)
         for k in range(1,self.p):
@@ -83,6 +89,10 @@ class fmmBox():
         return pot
 
     def multipoleVelocity(self,x,y):
+        """Get the VELOCITY at evaluation point (x,y) 
+        directly from the multipole expansion about the centre of 
+        this fmm-box (using coefficients ak) 
+        Note: this is simply the derivative of the multipolePotential function"""
         z = (x-self.x) + (y-self.y)*1j
         #pdb.set_trace()
         vel = self.ak[0]*(1/z)
@@ -91,6 +101,7 @@ class fmmBox():
         return (-1.0*vel.imag, vel.real)
 
     def translateMultipole(self,box):
+        """Lemma 4.6 (Translation of a multipole expansion)"""
         box.ak[0] += self.ak[0]
         zo = (self.x-box.x) + (self.y-box.y)*1j
         for l in range(1,self.p):
@@ -100,6 +111,7 @@ class fmmBox():
         return None
 
     def makeLocalExpansion(self, box):
+        """Lemma 4.7 (Conversion of a multipole expansion into a local expansion)"""
         zo = (box.x-self.x) + (box.y-self.y)*1j
         # Equation 4.18 - calculating b0        
         self.bl[0] += box.ak[0]*log(-1.0*zo)
@@ -115,6 +127,7 @@ class fmmBox():
         return None
 
     def translateLocalExp(self, box):
+        """Lemma 4.8 (Translation of a local expansion)"""
         zo = (box.x-self.x) + (box.y-self.y)*1j
         # First make a copy of the vector
         for l in range(self.p):
@@ -126,6 +139,9 @@ class fmmBox():
         return None
 
     def localExpPotential(self,x,y):
+        """Get the VELOCITY POTENTIAL at evaluation point (x,y) 
+        directly from the local expansion about the centre of 
+        this fmm-box (using coefficients bl)"""
         z = (x-self.x) + (y-self.y)*1j
         pot = 0.0
         for l in range(0,self.p):
@@ -133,6 +149,10 @@ class fmmBox():
         return pot
 
     def localExpVelocity(self,x,y):
+        """Get the VELOCITY at evaluation point (x,y) 
+        directly from the local expansion about the centre of 
+        this fmm-box (using coefficients bl) 
+        Note: this is simply the derivative of the localExpPotential function"""
         z = (x-self.x) + (y-self.y)*1j
         vel = 0.0 + 0j
         for l in range(0,self.p):
