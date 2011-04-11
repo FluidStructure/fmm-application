@@ -12,8 +12,6 @@ import matplotlib.pyplot as plt
 from math import pi, factorial
 from cmath import log
 
-import pdb
-
 def bincoeff(n,k):
     return factorial(n)/(factorial(k)*factorial(n-k))
 
@@ -174,7 +172,7 @@ class fmmBox():
         
 
 if __name__ == "__main__":
-    X0 = (-3.5,-4.5)      # Point about which sources are located
+    X0 = (2,3)      # Point about which sources are located
     e = (0.2,-0.8)  # Evaluation point (position inside of leaf-box)
     N = 20;         # Number of points
     p = 6;          # Truncation of multipole expansions
