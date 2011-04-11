@@ -2,5 +2,6 @@ applications/bin/*
 !applications/bin/holder.txt
 *.a
 *.o
+*.pyc
 lninclude/*
 !lninclude/holder.txt
