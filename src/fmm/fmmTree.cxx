@@ -6,8 +6,7 @@ fmmTree2d::fmmTree2d(const mesh2d& mesh, int nCoeffs)
 	
 	// Set the number of coefficients
 	p = nCoeffs;
-	topBox.p = nCoeffs;
-	topBox.ak = new complex<double>[p];
+	topBox.tree = this;
 	
 	// Some points to keep a track of the bounding box
 	pnt2d minPoint( mesh.elements[0].points[0]->co[0], mesh.elements[0].points[0]->co[1] );
@@ -65,21 +64,34 @@ void fmmTree2d::multipoleExpansion()
 	
 	for (int i=0; i<nLeafs; i++)
 	{
-		leafBoxes[i]->expandMultipole( p );
+		leafBoxes[i]->expandMultipole();
 	}
 };
 
 void fmmTree2d::upwardPass()
 {
-	cout << "Upward pass not implemented yet" << endl;
+	cout << "DOING THE UPWARD PASS" << endl;
+	topBox.getChildrenMultipoles();
 };
 
 void fmmTree2d::downwardPass()
 {
-	cout << "Downward pass not implemented yet" << endl;
+	cout << "DOING THE DOWNWARD PASS" << endl;
 };
 
 void fmmTree2d::nearInteractions()
 {
 	cout << "Near interactions not implemented yet" << endl;
+};
+
+
+void fmmTree2d::cacheCoeffs()
+{
+	cout << "Caching coefficients" << endl;
+};
+
+int fmmTree2d::binaryCoeff(int n, int k)
+{
+	//cout << "Retreiving coefficients" << endl;
+	return 1;
 };

@@ -43,6 +43,7 @@ int main()
 	cout << "Performing multipole expansions:" << endl;
 	gettimeofday(&start, NULL);
 	tree.multipoleExpansion();	// write the tree to VTK (takes ages for large number of levels)
+	tree.upwardPass();
 	gettimeofday(&stop, NULL);
 	cout << "Completed multipole expansions in:" << timeDiff(start, stop) << endl;
 

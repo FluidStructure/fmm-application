@@ -8,6 +8,9 @@ void fmmBox2d::initPointers()
 	for (int i=0;i<4;i++) { children[i] = NULL; }
 	// Initialize parent pointer to NULL
 	parent = NULL;
+	// Initialize poiters to FMM Storage
+	ak = NULL;
+	bl = NULL;
 };
 
 void fmmBox2d::split( vector<fmmBox2d*>& leafs )
@@ -110,6 +113,25 @@ void fmmBox2d::assignToChildren(const meshElement* element)
 };
 
 //------------------
+// Methods to get a pointer to a box that a point is inside of
+
+fmmBox2d* fmmBox2d::getPointBox(const double* co)
+{
+	int child = getChildIndex(co);
+	if (children[child] != NULL)
+		return children[child]->getPointBox(co);
+	return this;
+};
+
+fmmBox2d* fmmBox2d::getPointBox(const double* co, int maxLevel)
+{
+	int child = getChildIndex(co);
+	if ((children[child] != NULL) and (this->level < maxLevel))
+		return children[child]->getPointBox(co);
+	return this;
+};
+
+//------------------
 // POINTS
 int fmmBox2d::getChildIndex(const double* co) const
 {
@@ -165,24 +187,25 @@ int fmmBox2d::getChildIndex(const double* co1, const double* co2, int* childIndi
 
 //----------------------
 
-void fmmBox2d::expandMultipole( int& p )
+void fmmBox2d::expandMultipole()
 {
 	int nPoints = 0;
 	int nElements = elements.size();
 	double lims[2] = {0.0, 1.0};
+	ak = new complex<double>[tree->p];
 	
 	for (int i=0; i<nElements; i++)
 	{
 		nPoints = elements[i]->points.size();
 		if (nPoints == 1)
 		{
-			elements[i]->expandMultipole( this->center.co, ak, p );
+			elements[i]->expandMultipole( this->center.co, ak, tree->p );
 		}
 		else if (nPoints == 2)
 		{
 			// Get limits of line-integral (line-box intersection points)
 			lineIntersectionPoints( elements[i], lims );
-			elements[i]->expandMultipole( this->center.co, lims, ak, p );
+			elements[i]->expandMultipole( this->center.co, lims, ak, tree->p );
 		}
 		else
 		{
@@ -191,22 +214,93 @@ void fmmBox2d::expandMultipole( int& p )
 	}
 };
 
-void fmmBox2d::passUpwards()
+void fmmBox2d::getChildrenMultipoles()
 {
-	complex<double> zo( center.co[0], center.co[1] );
-	complex<double> z( parent->center.co[0], parent->center.co[1] );
-	complex<double> bl;
-	double BC[p];
-	
-	parent->ak[0] += ak[0]*log(z);
-	
-	// Do Equation 4.15 and build binomial coefficients dynamically with pascals triangle
-	BC[0] = 1.0;
-	for (int k; k<p; k++)
+	// Recursive call to get translate multipoles from children to parents
+	for (int i=0; i<4; i++)
 	{
-		BC[k] = BC[k-1];
-		bl = -1.0*ak[k]*pow(z,p-k)*BC[k];
+		if (children[i] != NULL)
+		{
+			if (children[i]->ak == NULL) 
+			{ 
+				children[i]->getChildrenMultipoles(); 
+			}
+			children[i]->translateMultipole();
+		}	
 	}
+};
+
+void fmmBox2d::translateMultipole()
+{
+	complex<double> zo( 
+	center.co[0] - parent->center.co[0],
+	center.co[1] - parent->center.co[1]);
+	
+	int p = tree->p;
+	if (parent->ak == NULL)
+	{
+		parent->ak = new complex<double>[p];
+		for (int i=0;i<p;i++) {parent->ak[i]=complex<double>(0,0);}
+	}
+		
+	// Lemma 4.6 (Translation of a multipole expansion)
+	parent->ak[0] += ak[0];
+	for (int l=1; l<p; l++)
+	{
+		parent->ak[l] += -1.0*ak[0]*pow(zo,l)/(double)l;
+		for (int k=1; k<l+1; k++)
+		{
+			parent->ak[l] += ak[k]*pow(zo,(l-k))*(double)tree->binaryCoeff(l-1,k-1);
+		}
+	}
+};
+
+void fmmBox2d::toLocalExpansion(fmmBox2d* box)
+{
+	complex<double> zo( 
+		box->center.co[0] - center.co[0],
+		box->center.co[1] - center.co[1]);
+	
+	int p = tree->p;
+	if (bl == NULL)
+	{
+		bl = new complex<double>[p];
+		for (int i=0;i<p;i++) {bl[i]=complex<double>(0,0);}
+	}
+		
+	// Lemma 4.7 (Conversion of a multipole expansion into a local expansion)
+	//Equation 4.18 - calculating b0        
+	bl[0] += box->ak[0]*log(-1.0*zo);
+	for (int k=1; k<p; k++)
+	{
+		bl[0] += box->ak[k]*pow(-1.0,k)/pow(zo,k);
+	}
+	//Equation 4.19 - calculation bl
+	for (int l=1; l<p; l++)
+	{
+		bl[l] += -1.0*box->ak[0]/((double)l*pow(zo,l));
+		complex<double> tmp(0.0,0.0);
+		for (int k=1;k<p;k++)
+		{
+			tmp += ((box->ak[k])/pow(zo,k))*pow(-1.0,k)*(double)tree->binaryCoeff(l+k-1,k-1);
+		}
+		bl[l] += (1.0/pow(zo,l))*tmp;
+	}
+};
+
+// Get pointers to the neighbours of this box
+// 
+void fmmBox2d::getNeighbours()
+{
+	cout << "getting neighbours" << endl;
+	
+};
+
+// Get pointers to the cousins of this box
+void fmmBox2d::getCousins()
+{
+	 cout << "getting cousins" << endl;
+	 
 };
 
 int fmmBox2d::lineIntersectionPoints( const meshElement* element, double pints[] )
@@ -298,14 +392,7 @@ void fmmBox2d::addChild(const unsigned i)
 	children[i]->length = length/2.0;
 	children[i]->level = level + 1;
 	children[i]->parent = this;
-	children[i]->p = p;
-	children[i]->ak = new complex<double>[p];
+	children[i]->tree = tree;
 };
 
-fmmBox2d* fmmBox2d::getPointBox(const double* co)
-{
-	int child = getChildIndex(co);
-	if (children[child] != NULL)
-		return children[child]->getPointBox(co);
-	return this;
-};
+

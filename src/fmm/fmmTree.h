@@ -16,9 +16,13 @@ class fmmTree2d
 public:
 	fmmBox2d topBox;
 	vector<fmmBox2d*> leafBoxes;
-	int p;	// Number of polynomial coefficiency in the multipole expansion
+	int p;	// Number of polynomial coefficients in the multipole expansion
 	
 	void resizeTopBox(pnt2d& minPoint, pnt2d& maxPoint);
+	
+	// Methods for generating and accessing cached coefficients for the FMM
+	void cacheCoeffs();
+	int binaryCoeff(int n, int k);
 	
 	void multipoleExpansion();
 	void upwardPass();

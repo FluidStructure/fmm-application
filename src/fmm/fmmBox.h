@@ -11,21 +11,29 @@
 #include <stdlib.h>
 using namespace std;
 
+// Forward declaration of fmmTree2d
+class fmmTree2d;
+
+// Declaration of fmmBox2d
 class fmmBox2d
 {
 private:
 	void initPointers();
 	
 public:
+	// Pointers to relational data structures
+	fmmTree2d* tree;
 	fmmBox2d* parent;
 	fmmBox2d* children[4];
+	
+	// Info about this particular box
 	pnt2d center;
 	double length;
 	int level;
 	
-	// FMM Storage
-	int p;
+	// FMM Storage - coefficents for multipole and local expansions
 	complex<double> * ak;
+	complex<double> * bl;
 	
 	// Vector of elements and info stored in this box
 	vector<const pnt2d*> targets;
@@ -45,11 +53,18 @@ public:
 	int lineIntersectionPoints( const meshElement* element, double pints[] );
 	bool pointInBox( double co[] );
 	fmmBox2d* getPointBox(const double* co);
+	fmmBox2d* getPointBox(const double* co, int maxLevel);
+	
+	// Relational methods
+	void getCousins();
+	void getNeighbours();
 	
 	// FMM Methods
-	void expandMultipole( int& p );
-	void passUpwards();
-	
+	void expandMultipole();
+	void getChildrenMultipoles();
+	void translateMultipole();
+	void toLocalExpansion(fmmBox2d* box);
+	 
 	// Constructors
 	fmmBox2d() { initPointers(); center.co[0] = 0.0; center.co[1] = 0.0; length=0.0; level=0; }
 	fmmBox2d( double a, double b, double c) { initPointers(); center.co[0]=a; center.co[1]=b; length=c; level=0; }
