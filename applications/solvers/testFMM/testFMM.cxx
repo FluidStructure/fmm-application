@@ -18,7 +18,7 @@ double timeDiff(timeval &start, timeval &end)
 
 int main()
 {
-	timeval start,stop;
+	timeval start,stop,start1,stop1;
 	
 	// Read in points and faces from a polyMesh directory
 	gettimeofday(&start, NULL);
@@ -39,13 +39,39 @@ int main()
 	gettimeofday(&stop, NULL);
 	cout << "Constructed the tree in: " << timeDiff(start, stop) << endl;
 
+	// Start a global FMM timer
+	gettimeofday(&start1, NULL);
+
 	// Perform the multipole expansions on leaf boxes
 	cout << "Performing multipole expansions:" << endl;
 	gettimeofday(&start, NULL);
-	tree.multipoleExpansion();	// write the tree to VTK (takes ages for large number of levels)
-	tree.upwardPass();
-	gettimeofday(&stop, NULL);
+	tree.multipoleExpansion();	
+	gettimeofday(&stop, NULL);	
 	cout << "Completed multipole expansions in:" << timeDiff(start, stop) << endl;
+	
+	// Perform the upward pass
+	cout << "Performing upward pass:" << endl;
+	gettimeofday(&start, NULL);
+	tree.upwardPass();	
+	gettimeofday(&stop, NULL);
+	cout << "Completed upward pass in:" << timeDiff(start, stop) << endl;
+	
+	// Perform the downward pass
+	cout << "Doing cousin interactions:" << endl;
+	gettimeofday(&start, NULL);
+	tree.topBox.doCousinInteractions();	
+	gettimeofday(&stop, NULL);
+	cout << "Completed cousin interactions in:" << timeDiff(start, stop) << endl;
+
+	cout << "Doing local translations and direct interactions:" << endl;
+	gettimeofday(&start, NULL);
+	tree.topBox.doLocalTranslations();	
+	gettimeofday(&stop, NULL);
+	cout << "Completed local interactions in:" << timeDiff(start, stop) << endl;
+
+	// Print out the time to complete all FMM operations
+	gettimeofday(&stop1, NULL);
+	cout << "Completed all FMM operations in:" << timeDiff(start1, stop1) << endl;
 
 	// Write the quad-tree to VTK format
 	cout << "Writing FMM Tree object:" << endl;

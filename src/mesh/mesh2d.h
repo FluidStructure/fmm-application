@@ -21,14 +21,22 @@ public:
 	vector<pnt2d*> points;
 	vector<int> pointsIndices;
 	int elementType;
+	vector<double> pointValues; // For holding the strengths at points
 	
-	vector<double> pointValues;
+	// Storage related to this element being a target 
+	// (collocationPoint, potential, velocity, etc.)
+	pnt2d collocationPoint();
+	double potential;
+	double velocity[2];
 	
 	void minMaxPoints ( pnt2d& minPoint, pnt2d& maxPoint) const;
 	
 	// FMM operations
 	void expandMultipole ( double zo[], complex<double> ak[], int& p ) const;
 	void expandMultipole ( double zo[], double lims[], complex<double> ak[], int& p ) const;
+
+    void directPotential ( meshElement* );
+    void directVelocity ( meshElement* );
 	
 	// Constructors
 	meshElement() { elementType=0; }

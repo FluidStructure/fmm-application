@@ -10,8 +10,24 @@ meshElement::meshElement( int nPoints, int *pIndex, vector<pnt2d>& allPoints )
 		pointsIndices.push_back( pIndex[i] );
 		points.push_back( &allPoints[pIndex[i]] );
 		
-		pointValues.push_back(1.0);
+		pointValues.push_back(1.0);  // Just a strength of 1.0 for now
 	}
+};
+
+// Function returns the geometric center of the element points
+pnt2d meshElement::collocationPoint()
+{
+	pnt2d p;
+	int nPoints = 0;
+	for (int i=0;i<points.size();i++)
+	{
+		p.co[0] += points[i]->co[0];
+		p.co[1] += points[i]->co[1];
+		nPoints++;
+	}
+	p.co[0] = p.co[0]/(double)nPoints;
+	p.co[1] = p.co[1]/(double)nPoints;
+	return p;
 };
 
 void meshElement::minMaxPoints( pnt2d& minPoint, pnt2d& maxPoint) const
@@ -85,6 +101,46 @@ void meshElement::expandMultipole ( double zo[], double lims[], complex<double> 
 		for (i=0;i<=k+1;i++) { B[i] = Btmp[i]; }  
 	}
 };
+
+
+void meshElement::directPotential(meshElement* target)
+{
+	pnt2d CP = target->collocationPoint();
+
+	if (points.size() == 1) 
+	{
+		target->potential += 
+			pointValues[0]*log(	points[0]->distToPoint(&CP) );
+	}
+	else if (points.size() == 2)
+	{
+		target->potential += 
+			pointValues[0]*log(	points[0]->distToPoint(&CP) );
+	}
+};
+
+void meshElement::directVelocity(meshElement* target)
+{
+	pnt2d CP = target->collocationPoint();
+
+	if (points.size() == 1) 
+	{
+		double X = CP.co[0] - points[0]->co[0];
+		double Y = CP.co[1] - points[0]->co[1];
+		double Rsq = pow(X,2) + pow(Y,2);
+		target->velocity[0] += pointValues[0]*Y/Rsq;
+		target->velocity[1] += pointValues[1]*X/Rsq;
+	}
+	else if (points.size() == 2)
+	{
+		double X = CP.co[0] - points[0]->co[0];
+		double Y = CP.co[1] - points[0]->co[1];
+		double Rsq = pow(X,2) + pow(Y,2);
+		target->velocity[0] += pointValues[0]*Y/Rsq;
+		target->velocity[1] += pointValues[1]*X/Rsq;
+	}
+};
+
 
 //-------------------------------
 // 2D mesh methods

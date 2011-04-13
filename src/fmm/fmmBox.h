@@ -36,11 +36,12 @@ public:
 	complex<double> * bl;
 	
 	// Vector of elements and info stored in this box
-	vector<const pnt2d*> targets;
-	vector<const meshElement*> elements;
+	//vector<meshElement*> targets;
+	vector<meshElement*> elements;
 	
 	// Methods for getting the child boxes of points, edges and faces
-	void assignToChildren(const meshElement* element);
+	bool hasChild();
+	void assignToChildren(meshElement* element);
 	int getChildIndex(const double* co) const;
 	int getChildIndex(const double* co1, const double* co2, int* childIndices) const;
 	
@@ -53,18 +54,28 @@ public:
 	int lineIntersectionPoints( const meshElement* element, double pints[] );
 	bool pointInBox( double co[] );
 	fmmBox2d* getPointBox(const double* co);
-	fmmBox2d* getPointBox(const double* co, int maxLevel);
+	fmmBox2d* getPointBox(const double* co, int atLevel);
 	
 	// Relational methods
-	void getCousins();
-	void getNeighbours();
+	void getCousins(fmmBox2d* cousinsList[]);
+	void getNeighbours(fmmBox2d* neighbourList[]);
 	
 	// FMM Methods
 	void expandMultipole();
 	void getChildrenMultipoles();
 	void translateMultipole();
 	void toLocalExpansion(fmmBox2d* box);
-	 
+	void translateLocalExpansion(fmmBox2d* box);
+	int localExpansionToChildren();
+	void doCousinInteractions();
+	void doLocalTranslations();
+	void doDirectInteractionsBothWays();
+	void localExpansionToTargetPotential();
+	void localExpansionToTargetVelocity();
+	
+	void elementToTargets( meshElement* element );
+	void elementsToTarget( meshElement* target );
+	
 	// Constructors
 	fmmBox2d() { initPointers(); center.co[0] = 0.0; center.co[1] = 0.0; length=0.0; level=0; }
 	fmmBox2d( double a, double b, double c) { initPointers(); center.co[0]=a; center.co[1]=b; length=c; level=0; }

@@ -24,6 +24,7 @@ public:
 	void cacheCoeffs();
 	int binaryCoeff(int n, int k);
 	
+	// FMM operations
 	void multipoleExpansion();
 	void upwardPass();
 	void downwardPass();
@@ -33,7 +34,7 @@ public:
 	
 	// Constructors
 	fmmTree2d() {};
-	fmmTree2d(const mesh2d& mesh, int nCoeffs);
+	fmmTree2d( mesh2d& mesh, int nCoeffs);
 	// Destructors
 	~fmmTree2d() {};
 };

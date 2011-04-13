@@ -1,6 +1,6 @@
 #include "fmm.h"
 
-fmmTree2d::fmmTree2d(const mesh2d& mesh, int nCoeffs)
+fmmTree2d::fmmTree2d( mesh2d& mesh, int nCoeffs )
 {
 	cout << "Constructing FMM from Mesh" << endl;
 	
@@ -14,7 +14,7 @@ fmmTree2d::fmmTree2d(const mesh2d& mesh, int nCoeffs)
 	
 	// Add pointers to element sources in the topbox
 	int nElements = mesh.elements.size();
-	topBox.targets.reserve( nElements );
+	//topBox.targets.reserve( nElements );
 	
 	for (int i=0; i<nElements; i++)
 	{
@@ -77,13 +77,11 @@ void fmmTree2d::upwardPass()
 void fmmTree2d::downwardPass()
 {
 	cout << "DOING THE DOWNWARD PASS" << endl;
+	cout << "1) DOING THE COUSIN INTERACTIONS..." << endl;
+	topBox.doCousinInteractions();
+	cout << "2) DOING THE LOCAL TRANSLATIONS..." << endl;
+	topBox.doLocalTranslations();
 };
-
-void fmmTree2d::nearInteractions()
-{
-	cout << "Near interactions not implemented yet" << endl;
-};
-
 
 void fmmTree2d::cacheCoeffs()
 {
