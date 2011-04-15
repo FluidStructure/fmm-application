@@ -1,10 +1,12 @@
 #include "fmm.h"
 
-fmmTree2d::fmmTree2d( mesh2d& mesh, int nCoeffs )
+fmmTree2d::fmmTree2d( mesh2d& mesh, int nCoeffs, int maxEPB, int maxLevel )
 {
 	cout << "Constructing FMM from Mesh" << endl;
 	
 	// Set the number of coefficients
+    maxl = maxLevel;
+    epb = maxEPB;
 	p = nCoeffs;
 	topBox.tree = this;
 	

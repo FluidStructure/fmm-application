@@ -16,7 +16,9 @@ class fmmTree2d
 public:
 	fmmBox2d topBox;
 	vector<fmmBox2d*> leafBoxes;
-	int p;	// Number of polynomial coefficients in the multipole expansion
+	int p;	    // Number of polynomial coefficients in the multipole expansion
+    int epb;    // Max elements per box
+    int maxl;   // Maximum number of FMM levels
 	
 	void resizeTopBox(pnt2d& minPoint, pnt2d& maxPoint);
 	
@@ -34,7 +36,7 @@ public:
 	
 	// Constructors
 	fmmTree2d() {};
-	fmmTree2d( mesh2d& mesh, int nCoeffs);
+	fmmTree2d( mesh2d& mesh, int nCoeffs=13, int maxEPB=15, int maxLevel=50);
 	// Destructors
 	~fmmTree2d() {};
 };

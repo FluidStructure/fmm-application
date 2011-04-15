@@ -33,7 +33,7 @@ void fmmBox2d::split( vector<fmmBox2d*>& leafs )
 	// OR: if they don't have any elements then point them to NULL
 	for (i=0; i<4; i++)
 	{
-		if ((children[i]->elements.size() > 15) and ( children[i]->level < 50 ))
+		if ((children[i]->elements.size() > tree->epb) and ( children[i]->level < tree->maxl ))
 		{
 			children[i]->split( leafs );
 		}
