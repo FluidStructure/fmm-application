@@ -73,14 +73,14 @@ public:
 	void localExpansionToTargetPotential();
 	void localExpansionToTargetVelocity();
 	
-	void elementToTargets( meshElement* element );
+	void elementToTargets( meshElement* element, bool returnFavour );
 	void elementsToTarget( meshElement* target );
 	
 	// Constructors
 	fmmBox2d() { initPointers(); center.co[0] = 0.0; center.co[1] = 0.0; length=0.0; level=0; }
 	fmmBox2d( double a, double b, double c) { initPointers(); center.co[0]=a; center.co[1]=b; length=c; level=0; }
 	// Destructors
-	~fmmBox2d() {};
+	~fmmBox2d();
 };
 
 #endif

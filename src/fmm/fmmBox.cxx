@@ -2,6 +2,13 @@
 
 //##########################
 
+// Destructor
+fmmBox2d::~fmmBox2d()
+{
+	delete [] ak;
+	delete [] bl;
+};
+
 void fmmBox2d::initPointers()
 {
 	// Initialize child pointers to NULL
@@ -300,6 +307,7 @@ void fmmBox2d::doLocalTranslations()
 		
 		//cout << "Doing a local expansion to target calc" << endl;
 		localExpansionToTargetPotential();
+		localExpansionToTargetVelocity();
 		//cout << "Completed local expansion to target calc" << endl;
 	}
 };
@@ -310,15 +318,18 @@ void fmmBox2d::localExpansionToTargetPotential()
 	{
 		meshElement* target = elements[t];
 		
-		complex<double> z( 
-			target->collocationPoint().co[0] - center.co[0],
-			target->collocationPoint().co[1] - center.co[1]);
-		
-		complex<double> potential(0.0,0.0);
-		for (int l=0;l<tree->p;l++)
-			{ potential += bl[l]*pow(z,l); }
-		
-		target->potential += potential.real();
+		if ( pointInBox(target->collocationPoint().co) )
+		{
+			complex<double> z( 
+				target->collocationPoint().co[0] - center.co[0],
+				target->collocationPoint().co[1] - center.co[1]);
+			
+			complex<double> potential(0.0,0.0);
+			for (int l=0;l<tree->p;l++)
+				{ potential += bl[l]*pow(z,l); }
+			
+			target->potential += potential.real();
+		}
 	}
 };
 
@@ -327,18 +338,21 @@ void fmmBox2d::localExpansionToTargetVelocity()
 	for (int t=0;t<elements.size();t++)
 	{
 		meshElement* target = elements[t];
-		
-		complex<double> z( 
-			target->collocationPoint().co[0] - center.co[0],
-			target->collocationPoint().co[1] - center.co[1]);
-		
-		// TODO: WATCH THIS SPACE - POSSIBLE ERROR
-		complex<double> velocity(0.0,0.0);
-		for (int l=0;l<tree->p;l++)
-			{ velocity += (double)l*bl[l]*pow(z,l-1); }
-		
-		target->velocity[0] += -1.0*velocity.imag();
-		target->velocity[1] += velocity.real();
+
+		if ( pointInBox(target->collocationPoint().co) )
+		{
+			complex<double> z( 
+				target->collocationPoint().co[0] - center.co[0],
+				target->collocationPoint().co[1] - center.co[1]);
+			
+			// TODO: WATCH THIS SPACE - POSSIBLE ERROR
+			complex<double> velocity(0.0,0.0);
+			for (int l=0;l<tree->p;l++)
+				{ velocity += (double)l*bl[l]*pow(z,l-1); }
+			
+			target->velocity[0] += -1.0*velocity.imag();
+			target->velocity[1] += velocity.real();
+		}
 	}
 };
 
@@ -347,6 +361,8 @@ void fmmBox2d::doDirectInteractionsBothWays()
 	meshElement* target;
 	int e,t;
 	int ne = elements.size();
+	bool returnFavour = true;
+	
 	
 	fmmBox2d* neighbours[8] = {NULL};
 	getNeighbours(neighbours);
@@ -360,20 +376,14 @@ void fmmBox2d::doDirectInteractionsBothWays()
 			// to the targets in the neighbour boxes
 			for (e=0; e<ne; e++)
 			{
-				neighbours[i]->elementToTargets( elements[e] );
-			}
-			// Now go through each element in the neighbouring boxes and pass
-			// their influence to the targets in this box
-			if (neighbours[i]->hasChild())
-			{
-				for (t=0; t<ne; t++)
-				{ 		
-					target = elements[t];
-					if ( pointInBox(target->collocationPoint().co) )
-					{ 
-						neighbours[i]->elementsToTarget( target );
-					}
-				}
+				returnFavour = true;
+				if (pointInBox(elements[e]->collocationPoint().co))
+					{ returnFavour=false; }
+				
+				if (not neighbours[i]->hasChild())
+					{ returnFavour=false; }
+				
+				neighbours[i]->elementToTargets( elements[e], returnFavour );
 			}
 		}
 	}
@@ -388,7 +398,7 @@ bool fmmBox2d::hasChild()
 	return false;
 };
 
-void fmmBox2d::elementToTargets( meshElement* element)
+void fmmBox2d::elementToTargets( meshElement* element, bool returnFavour)
 {
 	int ne = elements.size();
 	meshElement* target;
@@ -400,6 +410,13 @@ void fmmBox2d::elementToTargets( meshElement* element)
 		if ( pointInBox(target->collocationPoint().co) )
 		{
 			element->directPotential( target );
+			element->directVelocity( target );
+		}
+		
+		if (returnFavour==true)
+		{
+			target->directPotential( element ); 
+			target->directVelocity( element ); 
 		}
 	}
 	// Recurse into child boxes doing the same
@@ -407,7 +424,7 @@ void fmmBox2d::elementToTargets( meshElement* element)
 	{
 		if (children[i] != NULL) 
 		{
-			children[i]->elementToTargets( element );
+			children[i]->elementToTargets( element, returnFavour );
 		}
 	}
 };
@@ -418,6 +435,7 @@ void fmmBox2d::elementsToTarget( meshElement* target )
 	for (int e=0;e<elements.size();e++)
 	{
 		elements[e]->directPotential( target ); 
+		elements[e]->directVelocity( target ); 
 	}
 	// Recurse into child boxes doing the same
 	for (int i=0;i<4;i++)

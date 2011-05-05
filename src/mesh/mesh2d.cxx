@@ -2,6 +2,8 @@
 
 meshElement::meshElement( int nPoints, int *pIndex, vector<pnt2d>& allPoints )
 {
+	clearValues();
+	
 	pointsIndices.reserve(nPoints);
 	points.reserve(nPoints);
 
@@ -10,7 +12,7 @@ meshElement::meshElement( int nPoints, int *pIndex, vector<pnt2d>& allPoints )
 		pointsIndices.push_back( pIndex[i] );
 		points.push_back( &allPoints[pIndex[i]] );
 		
-		pointValues.push_back(1.0);  // Just a strength of 1.0 for now
+		pointValues.push_back(0.0);  // Just a strength of 1.0 for now
 	}
 };
 
@@ -28,6 +30,13 @@ pnt2d meshElement::collocationPoint()
 	p.co[0] = p.co[0]/(double)nPoints;
 	p.co[1] = p.co[1]/(double)nPoints;
 	return p;
+};
+
+void meshElement::clearValues()
+{
+	potential = 0.0;
+	velocity[0] = 0.0;
+	velocity[1] = 0.0;
 };
 
 void meshElement::minMaxPoints( pnt2d& minPoint, pnt2d& maxPoint) const
@@ -109,13 +118,11 @@ void meshElement::directPotential(meshElement* target)
 
 	if (points.size() == 1) 
 	{
-		target->potential += 
-			pointValues[0]*log(	points[0]->distToPoint(&CP) );
+		target->potential += pointValues[0]*log( points[0]->distToPoint(&CP) );
 	}
 	else if (points.size() == 2)
 	{
-		target->potential += 
-			pointValues[0]*log(	points[0]->distToPoint(&CP) );
+		target->potential += 0.0;
 	}
 };
 
@@ -123,21 +130,19 @@ void meshElement::directVelocity(meshElement* target)
 {
 	pnt2d CP = target->collocationPoint();
 
+	double X = CP.co[0] - points[0]->co[0];
+	double Y = CP.co[1] - points[0]->co[1];
+	double Rsq = pow(X,2) + pow(Y,2);
+
 	if (points.size() == 1) 
 	{
-		double X = CP.co[0] - points[0]->co[0];
-		double Y = CP.co[1] - points[0]->co[1];
-		double Rsq = pow(X,2) + pow(Y,2);
 		target->velocity[0] += pointValues[0]*Y/Rsq;
-		target->velocity[1] += pointValues[1]*X/Rsq;
+		target->velocity[1] += pointValues[0]*X/Rsq;
 	}
 	else if (points.size() == 2)
 	{
-		double X = CP.co[0] - points[0]->co[0];
-		double Y = CP.co[1] - points[0]->co[1];
-		double Rsq = pow(X,2) + pow(Y,2);
-		target->velocity[0] += pointValues[0]*Y/Rsq;
-		target->velocity[1] += pointValues[1]*X/Rsq;
+		target->velocity[0] += 0.0;
+		target->velocity[1] += 0.0;
 	}
 };
 
@@ -151,6 +156,7 @@ void mesh2d::read()
 	// Read in points and elements
 	readPoints();
 	readElements();
+	readValues();
 };
 
 void mesh2d::writeVTK()
@@ -199,6 +205,36 @@ void mesh2d::writeVTK()
 	}
 	//------------
 	fout.close();
+};
+
+void mesh2d::readValues()
+{
+	string line, buf;
+	double values[4];	// First value is number of points, up to 3 points (triangles for now)
+	int i,sz;
+	
+	ifstream fin("0/values");
+	
+	// Get the integer number of elements in total
+	int nElements = getListLength(fin);
+
+	// Read in all of the elements
+	int e = 0;
+	while(getline(fin, line, ')')) 
+	{ 
+		// Get the number of points for this element
+		if ( readListLine(line, values, 4) )
+		{
+			// Add the read values to the elements list for the mesh
+			sz =  elements[e].pointValues.size();
+			for (i=1; i<sz+1; i++)
+			{
+				elements[e].pointValues[i-1] = values[i];
+			}
+			e++;
+		}
+	}
+	fin.close();
 };
 
 void mesh2d::readElements()
@@ -332,7 +368,6 @@ void mesh2d::removeComments(string& str)
 			str.erase(s, f);
 		else
 			str.erase(s);
-		
 	}
 	return;
 };

@@ -3,12 +3,21 @@
 fmmTree2d::fmmTree2d( mesh2d& mesh, int nCoeffs, int maxEPB, int maxLevel )
 {
 	cout << "Constructing FMM from Mesh" << endl;
+	int i,k;
 	
 	// Set the number of coefficients
     maxl = maxLevel;
     epb = maxEPB;
 	p = nCoeffs;
 	topBox.tree = this;
+	
+	// Initialise the cached binary coefficient matrix
+	binomialCoefficients = new double* [2*p];
+	for(register int i=0; i<2*p; i++) 
+		{ binomialCoefficients[i] = new double [2*p]; }
+	for (i=0;i<2*p;i++){ for(k=0;k<2*p;k++){ binomialCoefficients[i][k]=0; }}
+	// Cache binomial coefficients
+	cacheCoeffs();
 	
 	// Some points to keep a track of the bounding box
 	pnt2d minPoint( mesh.elements[0].points[0]->co[0], mesh.elements[0].points[0]->co[1] );
@@ -18,7 +27,7 @@ fmmTree2d::fmmTree2d( mesh2d& mesh, int nCoeffs, int maxEPB, int maxLevel )
 	int nElements = mesh.elements.size();
 	//topBox.targets.reserve( nElements );
 	
-	for (int i=0; i<nElements; i++)
+	for (i=0; i<nElements; i++)
 	{
 		topBox.elements.push_back( &mesh.elements[i] );
 		topBox.elements.back()->minMaxPoints(minPoint, maxPoint);
@@ -29,6 +38,16 @@ fmmTree2d::fmmTree2d( mesh2d& mesh, int nCoeffs, int maxEPB, int maxLevel )
 
 	// Do the magic - make the tree
 	topBox.split( leafBoxes );
+};
+
+//Destructor
+fmmTree2d::~fmmTree2d()
+{
+for(int i=0; i<2*p; i++)
+{
+	delete [] binomialCoefficients[i];
+	delete [] binomialCoefficients;
+}
 };
 
 void fmmTree2d::resizeTopBox(pnt2d& minPoint, pnt2d& maxPoint)
@@ -87,11 +106,37 @@ void fmmTree2d::downwardPass()
 
 void fmmTree2d::cacheCoeffs()
 {
-	cout << "Caching coefficients" << endl;
+	int i,k;
+
+	// Make Pascals triangle in the binomialCoefficients array
+	binomialCoefficients[0][0] = 1.0;
+	for (k=1; k<2*p; k++)
+	{
+		binomialCoefficients[k][0] = 1.0;
+		for (i=1;i<k;i++) 
+		{ 
+			binomialCoefficients[k][i] = 
+			 binomialCoefficients[k-1][i] + binomialCoefficients[k-1][i-1]; 
+		}
+		binomialCoefficients[k][i] = 1.0;
+	}
+
+	/* Output the Triangle matrix
+	cout << "Caching of coefficients complete! Here is the array!" << endl;
+	for (k=0;k<2*p;k++)
+	{
+		for (i=0;i<2*p;i++)
+		{
+			cout << binomialCoefficients[k][i] << ", ";
+		}
+		cout << endl;
+	}
+	*/
 };
 
 int fmmTree2d::binaryCoeff(int n, int k)
 {
-	//cout << "Retreiving coefficients" << endl;
-	return 1;
+	//cout << "n=" << n << ", k=" << k << endl;
+	// n = row, k = column to look up
+	return binomialCoefficients[n][k];
 };

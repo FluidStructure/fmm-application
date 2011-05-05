@@ -28,6 +28,7 @@ public:
 	pnt2d collocationPoint();
 	double potential;
 	double velocity[2];
+	void clearValues();
 	
 	void minMaxPoints ( pnt2d& minPoint, pnt2d& maxPoint) const;
 	
@@ -59,6 +60,7 @@ private:
 
 	void readPoints();
 	void readElements();
+	void readValues();
 public:
 	double time;
 	string meshName;

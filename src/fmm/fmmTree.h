@@ -23,6 +23,7 @@ public:
 	void resizeTopBox(pnt2d& minPoint, pnt2d& maxPoint);
 	
 	// Methods for generating and accessing cached coefficients for the FMM
+	double **binomialCoefficients;
 	void cacheCoeffs();
 	int binaryCoeff(int n, int k);
 	
@@ -38,7 +39,7 @@ public:
 	fmmTree2d() {};
 	fmmTree2d( mesh2d& mesh, int nCoeffs=13, int maxEPB=15, int maxLevel=50);
 	// Destructors
-	~fmmTree2d() {};
+	~fmmTree2d();
 };
 
 #endif

@@ -33,9 +33,26 @@ int main()
 	gettimeofday(&stop, NULL);
 	cout << "Wrote the mesh in: " << timeDiff(start, stop) << endl;
 	
+	// Calculate the interactions on the last element directly (using an N^2 approach)
+	double directPot = 0.0;
+	int nElements = mesh.elements.size();
+	meshElement* targetElement = &mesh.elements[nElements-1];
+	targetElement->potential = 0.0;
+	for (int i=0; i<nElements-1; i++)
+	{
+		mesh.elements[i].directPotential(targetElement);
+		mesh.elements[i].directVelocity(targetElement);
+	}
+	cout << "================" << endl;
+	cout << "Direct potential at target element = " << targetElement->potential << endl;
+	cout << "Direct velocity at target element = (" << targetElement->velocity[0] << "," << targetElement->velocity[1] << ")" << endl;
+	cout << "================" << endl;
+	// Clear target potential value for FMM calculation
+	targetElement->clearValues();
+	
 	// Construct the FMM-tree for potential elements
 	gettimeofday(&start, NULL);
-	fmmTree2d tree(mesh, 6);	// Make an fmmTree from the mesh (p=6)
+	fmmTree2d tree(mesh, 6, 1);	// Make an fmmTree from the mesh (p=6)
 	gettimeofday(&stop, NULL);
 	cout << "Constructed the tree in: " << timeDiff(start, stop) << endl;
 
@@ -72,6 +89,12 @@ int main()
 	// Print out the time to complete all FMM operations
 	gettimeofday(&stop1, NULL);
 	cout << "Completed all FMM operations in:" << timeDiff(start1, stop1) << endl;
+
+	// Print out the potential calculated through the FMM
+	cout << "================" << endl;
+	cout << "FMM potential at target element = " << targetElement->potential << endl;
+	cout << "FMM velocity at target element = (" << targetElement->velocity[0] << "," << targetElement->velocity[1] << ")" << endl;
+	cout << "================" << endl;
 
 	// Write the quad-tree to VTK format
 	cout << "Writing FMM Tree object:" << endl;

@@ -3,16 +3,18 @@
 # 2011, Mark Pitman
 ########################################
     
-bl_addon_info = {
+bl_info = {
     "name": "OpenVOAM Export",
     "author": "Mark Pitman",
-    'version': '0.1',
-    "blender": (2, 5, 6),
-    'description': 'Export basic test geometry from Blender',
-    'warning': '',
-    'wiki_url': 'M.Pitman@curtin.edu.au',
-    'tracker_url': '',
-    'category': 'Import/Export'}
+    'version': (0, 1),
+    "blender": (2, 5, 7),
+    "api": 36079,
+    'description': 'Export basic test geometry from Blender to OpenVOAM',
+    "location": "File > Export > OpenVOAM",
+    "warning": "",
+    "wiki_url": "",
+    "tracker_url": "",
+    "category": "Import-Export"}
 
 import bpy
 from random import random
@@ -23,7 +25,7 @@ import pdb
 
 class addRandomPoints(bpy.types.Operator):
     bl_label = "Add Random Vertices"
-    bl_idname = "mesh.addRandomVerts"
+    bl_idname = "mesh.addrandomverts"
     bl_description = "Add Random Vertices"
     bl_options = {'REGISTER', 'UNDO'}
 
@@ -70,6 +72,9 @@ class addRandomPoints(bpy.types.Operator):
     def invoke(self, context, event):
         self.execute(context)
         return {'FINISHED'}
+
+bpy.utils.register_class(addRandomPoints)
+
 
 def menu_export(self, context):
     default_path = os.path.splitext(bpy.data.filepath)[0]
@@ -134,6 +139,8 @@ class openvoamExport(bpy.types.Operator):
         wm = context.window_manager
         wm.fileselect_add(self)
         return {'RUNNING_MODAL'}
+
+bpy.utils.register_class(openvoamExport)
 
 def register():
     bpy.types.INFO_MT_file_export.append(menu_export)
