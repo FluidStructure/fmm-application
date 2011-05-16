@@ -15,13 +15,30 @@
 #include <stdlib.h>
 using namespace std;
 
+// Define an element who knows what is attached to it
+class meshElement; // Forward declaration of meshElement
+class elementPoint : public pnt2d
+{
+public:
+	// Relational data
+	vector<meshElement*> owners;
+	// Values stored at this point
+	double value;
+	// Constructors
+	elementPoint() { co[0]=0; co[1]=0; value=0.0; }
+	elementPoint( double a, double b) { co[0]=a; co[1]=b; value=0.0; }
+    // Destructor
+	~elementPoint() {};
+};
+
+//--------------
+
 class meshElement
 {
 public:
-	vector<pnt2d*> points;
+	vector<elementPoint*> points;
 	vector<int> pointsIndices;
 	int elementType;
-	vector<double> pointValues; // For holding the strengths at points
 	
 	// Storage related to this element being a target 
 	// (collocationPoint, potential, velocity, etc.)
@@ -41,7 +58,7 @@ public:
 	
 	// Constructors
 	meshElement() { elementType=0; }
-	meshElement( int nPoints, int* pIndex, vector<pnt2d>& allPoints);
+	meshElement( int nPoints, int* pIndex, vector<elementPoint>& allPoints);
 	// Destructors
 	~meshElement() {};
 };
@@ -68,7 +85,7 @@ public:
     void read();
     void writeVTK();
 
-	vector<pnt2d> points;
+	vector<elementPoint> points;
 	vector<meshElement> elements;
 	
 	// Constructors

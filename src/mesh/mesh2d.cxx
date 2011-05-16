@@ -1,6 +1,6 @@
 #include "mesh.h"
 
-meshElement::meshElement( int nPoints, int *pIndex, vector<pnt2d>& allPoints )
+meshElement::meshElement( int nPoints, int *pIndex, vector<elementPoint>& allPoints )
 {
 	clearValues();
 	
@@ -9,10 +9,9 @@ meshElement::meshElement( int nPoints, int *pIndex, vector<pnt2d>& allPoints )
 
 	for (int i=0;i<nPoints;i++)
 	{
+		allPoints[ pIndex[i] ].owners.push_back( this );
 		pointsIndices.push_back( pIndex[i] );
 		points.push_back( &allPoints[pIndex[i]] );
-		
-		pointValues.push_back(0.0);  // Just a strength of 1.0 for now
 	}
 };
 
@@ -56,7 +55,7 @@ void meshElement::minMaxPoints( pnt2d& minPoint, pnt2d& maxPoint) const
 void meshElement::expandMultipole ( double zo[], complex<double> ak[], int& p ) const
 {
 	// Assuming this element is a point element using only first point
-	double q = pointValues[0];
+	double q = points[0]->value;
 	complex<double> z( points[0]->co[0]-zo[0], points[0]->co[1]-zo[1] );
 	
 	ak[0] += q;
@@ -74,8 +73,8 @@ void meshElement::expandMultipole ( double zo[], double lims[], complex<double> 
 	complex<double> D( points[1]->co[0]-points[0]->co[0], 
 					    points[1]->co[1]-points[0]->co[1] );
 	
-	double q1 = pointValues[0];
-	double q2 = pointValues[1];
+	double q1 = points[0]->value;
+	double q2 = points[1]->value;
 	
 	// Integral for the strength
 	ak[0] += q1*(lims[1] - lims[0])
@@ -118,7 +117,7 @@ void meshElement::directPotential(meshElement* target)
 
 	if (points.size() == 1) 
 	{
-		target->potential += pointValues[0]*log( points[0]->distToPoint(&CP) );
+		target->potential += points[0]->value*log( points[0]->distToPoint(&CP) );
 	}
 	else if (points.size() == 2)
 	{
@@ -136,8 +135,8 @@ void meshElement::directVelocity(meshElement* target)
 
 	if (points.size() == 1) 
 	{
-		target->velocity[0] += pointValues[0]*Y/Rsq;
-		target->velocity[1] += pointValues[0]*X/Rsq;
+		target->velocity[0] += points[0]->value*Y/Rsq;
+		target->velocity[1] += points[0]->value*X/Rsq;
 	}
 	else if (points.size() == 2)
 	{
@@ -191,7 +190,8 @@ void mesh2d::writeVTK()
 	for (i=0; i<elements.size(); i++)
 	{
 		fout << elements[i].pointsIndices.size();
-		for (int p=0; p<elements[i].pointsIndices.size(); p++) { fout << " " << elements[i].pointsIndices[p]; }
+		for (int p=0; p<elements[i].pointsIndices.size(); p++) 
+				{ fout << " " << elements[i].pointsIndices[p]; }
 		fout << endl;
 	}
 	//
@@ -226,10 +226,10 @@ void mesh2d::readValues()
 		if ( readListLine(line, values, 4) )
 		{
 			// Add the read values to the elements list for the mesh
-			sz =  elements[e].pointValues.size();
+			sz =  elements[e].points.size();
 			for (i=1; i<sz+1; i++)
 			{
-				elements[e].pointValues[i-1] = values[i];
+				elements[e].points[i-1]->value = values[i];
 			}
 			e++;
 		}
@@ -280,7 +280,7 @@ void mesh2d::readPoints()
 		if ( readListLine(line, values, 3) )
         {
 			// Add the read values to the points list for the mesh
-			points.push_back(pnt2d( values[0], values[1] ));
+			points.push_back(elementPoint( values[0], values[1] ));
         }
 	}
 	fin.close();

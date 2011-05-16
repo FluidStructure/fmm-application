@@ -72,7 +72,7 @@ void fmmBox2d::writeToMesh(mesh2d& mesh, bool children=true)
 		{
 			x = this->center.co[0] + ((double)i * this->length)/2.0;
 			y = this->center.co[1] + ((double)j * this->length)/2.0;
-			mesh.points.push_back( pnt2d(x, y) );
+			mesh.points.push_back( elementPoint(x, y) );
 			pIndex[c]=s+c; c++;
 		}
 	}
